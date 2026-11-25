@@ -6,6 +6,7 @@ Defaults are already conservative (1280×720 @ 5 FPS, JPEG 60, change-detect).
 
 1. Run `python -m screen_watch advise` — heed CPU / RAM / disk warnings (advisory only).
 2. Prefer `start_watch` + `get_latest_frame_info` polling; only pull JPEG when `content_hash` changes.
+   Or call `get_latest_frame(since_hash=<last>)` — matching hash returns a tiny JSON stub (no image tokens).
 3. Use `get_region_frame` / `guided_region_focus` for UI work — crops beat full desktop for tokens and encode time.
 4. Keep `SCREEN_WATCH_MIN_CAPTURE_INTERVAL` ≥ 0.1s unless you measured a need (default 0.12).
 5. On Windows gaming PCs, try `SCREEN_WATCH_BACKEND=dxcam` after `pip install "screen-watch[windows]"`.

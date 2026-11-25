@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7 — 2026-11-25
+
+- `get_latest_frame(since_hash=…)` / `get_latest_frame_info` — skip image tokens when hash matches
+- `project.urls` (Homepage / Repository / Issues / Changelog)
+- GitHub Actions `release.yml` (build artifacts; PyPI on `v*` tags when token set)
+- Public repo: https://github.com/JadissEL/screen-watch
+
 ## 0.1.6 — 2026-11-25
 
 - Configurable `SCREEN_WATCH_MIN_CAPTURE_INTERVAL` (wired into grab gate)

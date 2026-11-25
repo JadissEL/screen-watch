@@ -11,6 +11,11 @@ Local MCP server so Cursor, Claude Code, and similar agents can see your desktop
 ## Install
 
 ```bash
+# From GitHub (recommended while pre-PyPI)
+pip install "git+https://github.com/JadissEL/screen-watch.git"
+
+# Or clone + editable
+git clone https://github.com/JadissEL/screen-watch.git
 cd screen-watch
 pip install -e ".[dev]"
 ```
@@ -70,8 +75,8 @@ See [docs/CONFIG.md](docs/CONFIG.md).
 
 | Tool | Purpose |
 |------|---------|
-| `get_latest_frame` | Latest JPEG (`blur` optional) |
-| `get_latest_frame_info` | Frame metadata only (no image bytes) |
+| `get_latest_frame` | Latest JPEG (`blur`, `since_hash` to skip identical frames) |
+| `get_latest_frame_info` | Frame metadata only (no image bytes; supports `since_hash`) |
 | `save_latest_frame` | Write JPEG to a local path (no image tokens) |
 | `list_tools` | Canonical tool name catalog |
 | `start_watch` / `stop_watch` / `get_watch_status` | Background daemon |

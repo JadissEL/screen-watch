@@ -62,11 +62,13 @@ def build_server() -> Any:
         mcp = FastMCP("screen-watch")
 
     @mcp.tool()
-    def get_latest_frame(blur: bool = False) -> Any:
+    def get_latest_frame(blur: bool = False, since_hash: str = "") -> Any:
         """
         Capture or return the latest desktop frame as JPEG (observation only).
 
         blur: if true, pixelate the frame before send (privacy). Off by default.
+        since_hash: if set and equal to the current content_hash, return a small JSON
+        stub instead of image bytes (avoids re-billing identical frames).
         """
         svc = get_service()
         frame = svc.latest_for_agent(blur=blur)
@@ -81,33 +83,42 @@ def build_server() -> Any:
             "blur": frame.blur,
             "backend": frame.backend,
         }
+        if since_hash and since_hash == frame.content_hash:
+            logger.info("get_latest_frame unchanged hash=%s", since_hash[:12])
+            return {
+                "unchanged": True,
+                "skipped_image": True,
+                **meta,
+                "age_ms": svc.store.age_ms(),
+            }
         logger.info("get_latest_frame %sx%s blur=%s", frame.width, frame.height, frame.blur)
         return _image_result(frame.jpeg, meta)
 
     @mcp.tool()
-    def get_latest_frame_info(blur: bool = False) -> dict[str, Any]:
+    def get_latest_frame_info(blur: bool = False, since_hash: str = "") -> dict[str, Any]:
         """
         Same as get_latest_frame but returns JSON metadata (no image bytes).
 
-        Use with the watch daemon + get_latest_frame when you need dimensions/hash
-        without paying image tokens again.
+        Pass since_hash from a prior poll; when it matches, ``unchanged`` is true and
+        you can skip calling get_latest_frame.
         """
         svc = get_service()
         frame = svc.latest_for_agent(blur=blur)
         if not frame.jpeg:
             frame = svc.capture_once(blur=blur)
+        unchanged_vs_client = bool(since_hash) and since_hash == frame.content_hash
         return {
             "width": frame.width,
             "height": frame.height,
             "timestamp_ms": frame.timestamp_ms,
             "content_hash": frame.content_hash,
-            "unchanged": frame.unchanged,
+            "unchanged": frame.unchanged or unchanged_vs_client,
+            "unchanged_vs_client": unchanged_vs_client,
             "blur": frame.blur,
             "backend": frame.backend,
             "bytes": len(frame.jpeg),
             "age_ms": svc.store.age_ms(),
         }
-
     @mcp.tool()
     def save_latest_frame(
         path: str = "",
