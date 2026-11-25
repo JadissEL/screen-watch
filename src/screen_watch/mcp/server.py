@@ -6,6 +6,7 @@ import json
 import logging
 from typing import Any
 
+from screen_watch import __version__
 from screen_watch.advisor.cost_estimate import estimate_session_cost
 from screen_watch.advisor.llm_catalog import list_models
 from screen_watch.advisor.profiler import profile_machine, recommend_settings
@@ -81,6 +82,15 @@ def build_server() -> Any:
 
     except Exception:
         logger.debug("MCP resources not registered on this SDK", exc_info=True)
+
+    @mcp.tool()
+    def get_version() -> dict[str, Any]:
+        """Return package version and repo URL."""
+        return {
+            "version": __version__,
+            "repo": "https://github.com/JadissEL/screen-watch",
+            "privacy": privacy_blurb(),
+        }
 
     @mcp.tool()
     def get_latest_frame(blur: bool = False, since_hash: str = "") -> Any:

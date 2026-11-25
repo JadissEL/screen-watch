@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 TOOL_NAMES: tuple[str, ...] = (
+    "get_version",
     "get_latest_frame",
     "get_latest_frame_info",
     "get_display_frame",

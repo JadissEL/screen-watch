@@ -78,6 +78,7 @@ See [docs/CONFIG.md](docs/CONFIG.md).
 
 | Tool | Purpose |
 |------|---------|
+| `get_version` | Package version |
 | `get_latest_frame` | Latest JPEG (`blur`, `since_hash` to skip identical frames) |
 | `get_latest_frame_info` | Frame metadata only (no image bytes; supports `since_hash`) |
 | `get_display_frame` | Capture a specific monitor id |

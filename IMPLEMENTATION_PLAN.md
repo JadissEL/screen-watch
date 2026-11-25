@@ -376,6 +376,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **config.toml + per-display + bench** | User TOML config; `get_display_frame`; latency bench | **Done (0.1.9)** |
 | **MCP resources + lint pin** | `screen://` resources; `once --display`; deterministic ruff select | **Done (0.1.10)** |
 | **Watch display + packaging smoke** | `set_capture_display`; CI wheel install; issue templates | **Done (0.1.11)** |
+| **Cross-OS virtual screen + ops** | mss virtual geometry; get_version; Dependabot; SECURITY.md | **Done (0.1.12)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.12 — 2026-11-25
+
+- Virtual-screen geometry via mss on non-Windows (better multi-monitor focus)
+- MCP `get_version`; root `SECURITY.md`; Dependabot; agent usage example
+- Fix release workflow (invalid secrets `if` broke Actions on main)
+
 ## 0.1.11 — 2026-11-25
 
 - `start_watch(display_id)` + MCP `set_capture_display`; status exposes `display`

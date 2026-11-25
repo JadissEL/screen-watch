@@ -14,6 +14,7 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 
 | Tool | Notes |
 |------|-------|
+| `get_version` | Package version + repo |
 | `get_latest_frame` | JPEG; `blur`, `since_hash` |
 | `get_latest_frame_info` | Metadata only; `since_hash` |
 | `get_display_frame` | Specific monitor id |

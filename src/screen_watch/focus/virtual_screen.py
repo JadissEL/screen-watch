@@ -24,6 +24,30 @@ class VirtualScreen:
         return self.top + self.height
 
 
+def _mss_virtual_screen() -> VirtualScreen | None:
+    """Use mss monitors[0] (virtual desktop) when a display is available."""
+    try:
+        import mss
+
+        ctx = mss.MSS() if hasattr(mss, "MSS") else mss.mss()
+        with ctx as sct:
+            if not sct.monitors:
+                return None
+            virtual = sct.monitors[0]
+            width = int(virtual["width"])
+            height = int(virtual["height"])
+            if width <= 0 or height <= 0:
+                return None
+            return VirtualScreen(
+                int(virtual["left"]),
+                int(virtual["top"]),
+                width,
+                height,
+            )
+    except Exception:
+        return None
+
+
 def virtual_screen_geometry(
     *,
     fallback_width: int = 1920,
@@ -32,9 +56,7 @@ def virtual_screen_geometry(
     """
     Return the full virtual desktop used by the OS for multi-monitor layouts.
 
-    On Windows uses ``GetSystemMetrics`` virtual-screen values. Elsewhere falls
-    back to the provided size at origin (0, 0) — callers typically pass tk
-    ``winfo_screenwidth/height``.
+    Priority: Windows ``GetSystemMetrics`` → mss virtual monitor → tk fallback size.
     """
     if sys.platform == "win32":
         try:
@@ -50,4 +72,9 @@ def virtual_screen_geometry(
                 return VirtualScreen(left, top, width, height)
         except Exception:
             pass
+
+    mss_vs = _mss_virtual_screen()
+    if mss_vs is not None:
+        return mss_vs
+
     return VirtualScreen(0, 0, max(1, fallback_width), max(1, fallback_height))
