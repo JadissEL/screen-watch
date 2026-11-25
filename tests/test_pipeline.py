@@ -32,18 +32,21 @@ def test_encode_jpeg_nonempty() -> None:
 
 def test_change_detect_identical() -> None:
     rgb = _solid(100, 80, (50, 50, 50))
-    changed, thumb = frames_changed(rgb, 100, 80, None, threshold=2.0)
+    changed, thumb, score0 = frames_changed(rgb, 100, 80, None, threshold=2.0)
     assert changed is True
-    changed2, _ = frames_changed(rgb, 100, 80, thumb, threshold=2.0)
+    assert score0 == 0.0
+    changed2, _, score1 = frames_changed(rgb, 100, 80, thumb, threshold=2.0)
     assert changed2 is False
+    assert score1 < 2.0
 
 
 def test_change_detect_different() -> None:
     a = _solid(100, 80, (0, 0, 0))
     b = _solid(100, 80, (255, 255, 255))
-    _, thumb = frames_changed(a, 100, 80, None, threshold=2.0)
-    changed, _ = frames_changed(b, 100, 80, thumb, threshold=2.0)
+    _, thumb, _ = frames_changed(a, 100, 80, None, threshold=2.0)
+    changed, _, score = frames_changed(b, 100, 80, thumb, threshold=2.0)
     assert changed is True
+    assert score >= 2.0
 
 
 def test_pixelate_same_size() -> None:

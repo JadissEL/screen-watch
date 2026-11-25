@@ -30,7 +30,8 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 | `get_region_frame` / `guided_region_focus` / `get_latest_focus` | Region focus |
 | `doctor` | Install / backend report |
 
-Canonical names live in `screen_watch.mcp.tools_catalog.TOOL_NAMES` (kept in sync by tests).
+Canonical names live in `screen_watch.mcp.tools_catalog.TOOL_NAMES` (kept in sync by tests).  
+Compatibility promise: [STABLE_API.md](STABLE_API.md) (from **v0.2.0**).
 
 ## Token tips
 

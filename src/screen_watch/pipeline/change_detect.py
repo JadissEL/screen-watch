@@ -33,14 +33,15 @@ def frames_changed(
     height: int,
     previous_thumb: Image.Image | None,
     threshold: float,
-) -> tuple[bool, Image.Image]:
+) -> tuple[bool, Image.Image, float]:
     """
-    Return (changed, new_thumb).
+    Return (changed, new_thumb, mean_abs_diff_score).
 
+    Score is 0..255 mean absolute grayscale thumb difference (0 if first frame).
     If previous_thumb is None, always treat as changed.
     """
     thumb = _thumb_gray(rgb, width, height)
     if previous_thumb is None:
-        return True, thumb
+        return True, thumb, 0.0
     diff = mean_abs_diff(thumb, previous_thumb)
-    return diff >= threshold, thumb
+    return diff >= threshold, thumb, diff

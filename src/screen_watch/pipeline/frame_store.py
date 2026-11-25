@@ -22,6 +22,7 @@ class EncodedFrame:
     backend: str
     display_id: int
     blur: bool = False
+    change_score: float = 0.0
 
 
 @dataclass(slots=True, frozen=True)
@@ -37,6 +38,7 @@ class FrameMeta:
     display_id: int
     blur: bool
     jpeg_bytes: int
+    change_score: float = 0.0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -49,6 +51,7 @@ class FrameMeta:
             "display_id": self.display_id,
             "blur": self.blur,
             "jpeg_bytes": self.jpeg_bytes,
+            "change_score": self.change_score,
         }
 
 
@@ -71,6 +74,7 @@ class FrameStore:
             display_id=frame.display_id,
             blur=frame.blur,
             jpeg_bytes=len(frame.jpeg),
+            change_score=frame.change_score,
         )
         with self._lock:
             self._frame = frame

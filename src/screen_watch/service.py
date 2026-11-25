@@ -256,6 +256,7 @@ class ScreenWatchService:
                 "content_hash": frame.content_hash,
                 "unchanged": frame.unchanged,
                 "blur": frame.blur,
+                "change_score": frame.change_score,
                 "age_ms": self.store.age_ms(),
             },
         }

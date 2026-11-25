@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 — 2026-11-25
+
+- **Stable MCP surface** documented in `docs/STABLE_API.md`
+- `change_score` on frames / history / status (mean-abs thumb diff)
+- CI/release Actions bumped to checkout/setup-python/upload-artifact **v7**
+
 ## 0.1.13 — 2026-11-25
 
 - Frame metadata ring buffer + MCP `get_frame_history` (`changed_only`)

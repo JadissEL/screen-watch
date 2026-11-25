@@ -37,14 +37,16 @@ def process_raw_frame(
     if apply_blur:
         rgb = pixelate_rgb(rgb, w, h, settings.blur_block)
 
+    change_score = 0.0
     if skip_change_detect:
-        changed, thumb = True, None  # type: ignore[assignment]
         from screen_watch.pipeline.change_detect import _thumb_gray
 
         thumb = _thumb_gray(rgb, w, h)
         changed = True
     else:
-        changed, thumb = frames_changed(rgb, w, h, previous_thumb, settings.change_threshold)
+        changed, thumb, change_score = frames_changed(
+            rgb, w, h, previous_thumb, settings.change_threshold
+        )
 
     if not changed:
         digest = hashlib.sha256(rgb).hexdigest()[:16]
@@ -59,6 +61,7 @@ def process_raw_frame(
                 backend=raw.backend,
                 display_id=raw.display_id,
                 blur=apply_blur,
+                change_score=change_score,
             ),
             thumb,
         )
@@ -76,6 +79,7 @@ def process_raw_frame(
             backend=raw.backend,
             display_id=raw.display_id,
             blur=apply_blur,
+            change_score=change_score,
         ),
         thumb,
     )

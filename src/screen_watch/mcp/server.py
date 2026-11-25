@@ -113,6 +113,7 @@ def build_server() -> Any:
             "unchanged": frame.unchanged,
             "blur": frame.blur,
             "backend": frame.backend,
+            "change_score": frame.change_score,
         }
         if since_hash and since_hash == frame.content_hash:
             logger.info("get_latest_frame unchanged hash=%s", since_hash[:12])
@@ -147,9 +148,11 @@ def build_server() -> Any:
             "unchanged_vs_client": unchanged_vs_client,
             "blur": frame.blur,
             "backend": frame.backend,
+            "change_score": frame.change_score,
             "bytes": len(frame.jpeg),
             "age_ms": svc.store.age_ms(),
         }
+
     @mcp.tool()
     def get_frame_history(limit: int = 20, changed_only: bool = False) -> dict[str, Any]:
         """
