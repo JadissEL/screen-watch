@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from screen_watch.focus.region import BBox, normalize_bbox
+from screen_watch.focus.virtual_screen import virtual_screen_geometry
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +73,12 @@ def select_region_interactive(
     root.configure(bg="#0d0d0d")
     root.overrideredirect(True)
 
-    sw = root.winfo_screenwidth()
-    sh = root.winfo_screenheight()
-    root.geometry(f"{sw}x{sh}+0+0")
+    vs = virtual_screen_geometry(
+        fallback_width=root.winfo_screenwidth(),
+        fallback_height=root.winfo_screenheight(),
+    )
+    sw, sh = vs.width, vs.height
+    root.geometry(f"{sw}x{sh}+{vs.left}+{vs.top}")
     root.update_idletasks()
     _apply_windows_layered(root)
 
@@ -83,7 +87,7 @@ def select_region_interactive(
     hint = canvas.create_text(
         sw // 2,
         36,
-        text="Drag loose box · release to accept · Esc cancel",
+        text="Drag loose box · release to accept · Esc cancel · covers all monitors",
         fill="#f2f2f2",
         font=("Segoe UI", 13),
     )

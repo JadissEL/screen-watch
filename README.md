@@ -97,7 +97,8 @@ python -m screen_watch hotkey
 ```
 
 
-Cursor example config: [examples/cursor-mcp.json](examples/cursor-mcp.json).
+Cursor example config: [examples/cursor-mcp.json](examples/cursor-mcp.json).  
+Hash-poll demo: [examples/poll_since_hash.py](examples/poll_since_hash.py).
 
 ## Architecture sketch
 

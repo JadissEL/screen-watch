@@ -363,7 +363,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **BBox-only crop** | MCP `get_region_frame(x,y,w,h)` | **Done** |
 | **Vision snap** | Agent infers nearest UI element; no a11y-tree dependency | **Agent-side** |
 | **Global hotkey** | Windows: `RegisterHotKey`. macOS/Linux: optional `pynput` (`[hotkey]` extra). Default Ctrl+Shift+F; artifacts in `latest_focus/` + MCP `get_latest_focus` | **Done** |
-| **Multi-monitor focus** | Virtual-desktop grab + origin offset when cropping gestures | **Done (0.1.2)** |
+| **Multi-monitor focus** | Virtual-desktop grab + origin offset when cropping gestures; overlay spans virtual screen (Win) | **Done (0.1.2 / 0.1.8)** |
 | **Linux Wayland** | `grim` when present, else mss | **Done (0.1.2)** |
 | **macOS capture** | System `screencapture` when present, else mss (pyobjc SCK still future) | **Done (0.1.3)** |
 | **Doctor / CI** | `doctor` CLI+MCP; GitHub Actions matrix | **Done (0.1.3)** |

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 — 2026-11-25
+
+- Focus overlay covers the full **virtual desktop** on Windows (multi-monitor)
+- `examples/poll_since_hash.py` agent polling demo
+- CI runs `ruff check`; doctor reports repo URL + min capture interval
+
 ## 0.1.7 — 2026-11-25
 
 - `get_latest_frame(since_hash=…)` / `get_latest_frame_info` — skip image tokens when hash matches

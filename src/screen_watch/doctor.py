@@ -41,8 +41,10 @@ def run_doctor() -> dict[str, Any]:
             "jpeg_quality": settings.jpeg_quality,
             "backend": settings.backend,
             "focus_hotkey": settings.focus_hotkey,
+            "min_capture_interval_s": settings.min_capture_interval_s,
             "recording_enabled": settings.recording_enabled,
         },
+        "repo": "https://github.com/JadissEL/screen-watch",
         "backend": backend_info,
         "tools": {
             "grim": bool(shutil.which("grim")),
