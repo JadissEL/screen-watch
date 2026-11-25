@@ -1,0 +1,324 @@
+"""MCP stdio server exposing screen-watch tools."""
+
+from __future__ import annotations
+
+import json
+import logging
+from typing import Any
+
+from screen_watch.advisor.cost_estimate import estimate_session_cost
+from screen_watch.advisor.llm_catalog import list_models
+from screen_watch.advisor.profiler import profile_machine, recommend_settings
+from screen_watch.advisor.store import load_advisor_state, save_advisor_state
+from screen_watch.logging_setup import configure_logging
+from screen_watch.mcp.tools_catalog import TOOL_NAMES
+from screen_watch.privacy import privacy_blurb
+from screen_watch.recording.session import RecordingManager
+from screen_watch.service import get_service
+
+logger = logging.getLogger(__name__)
+
+_recorder: RecordingManager | None = None
+
+
+def _get_recorder() -> RecordingManager:
+    global _recorder
+    svc = get_service()
+    if _recorder is None:
+        _recorder = RecordingManager(svc.settings)
+    return _recorder
+
+
+def _image_result(jpeg: bytes, meta: dict[str, Any]) -> Any:
+    """Return MCP Image when possible, else JSON with base64 (fallback)."""
+    try:
+        try:
+            from mcp.server.fastmcp import Image
+        except ImportError:
+            from mcp.server.mcpserver import Image  # type: ignore
+
+        # Prefer returning Image; also include meta via side channel is hard —
+        # FastMCP Image is the primary payload. Callers can use get_watch_status for meta.
+        return Image(data=jpeg, format="jpeg")
+    except Exception:
+        import base64
+
+        return {
+            "mime": "image/jpeg",
+            "base64": base64.b64encode(jpeg).decode("ascii"),
+            **meta,
+        }
+
+
+def build_server() -> Any:
+    """Construct the MCP server object (FastMCP / MCPServer)."""
+    try:
+        from mcp.server.fastmcp import FastMCP
+
+        mcp = FastMCP("screen-watch")
+    except ImportError:
+        from mcp.server import MCPServer as FastMCP  # type: ignore
+
+        mcp = FastMCP("screen-watch")
+
+    @mcp.tool()
+    def get_latest_frame(blur: bool = False) -> Any:
+        """
+        Capture or return the latest desktop frame as JPEG (observation only).
+
+        blur: if true, pixelate the frame before send (privacy). Off by default.
+        """
+        svc = get_service()
+        frame = svc.latest_for_agent(blur=blur)
+        if not frame.jpeg:
+            frame = svc.capture_once(blur=blur)
+        meta = {
+            "width": frame.width,
+            "height": frame.height,
+            "timestamp_ms": frame.timestamp_ms,
+            "content_hash": frame.content_hash,
+            "unchanged": frame.unchanged,
+            "blur": frame.blur,
+            "backend": frame.backend,
+        }
+        logger.info("get_latest_frame %sx%s blur=%s", frame.width, frame.height, frame.blur)
+        return _image_result(frame.jpeg, meta)
+
+    @mcp.tool()
+    def get_latest_frame_info(blur: bool = False) -> dict[str, Any]:
+        """
+        Same as get_latest_frame but returns JSON metadata (no image bytes).
+
+        Use with the watch daemon + get_latest_frame when you need dimensions/hash
+        without paying image tokens again.
+        """
+        svc = get_service()
+        frame = svc.latest_for_agent(blur=blur)
+        if not frame.jpeg:
+            frame = svc.capture_once(blur=blur)
+        return {
+            "width": frame.width,
+            "height": frame.height,
+            "timestamp_ms": frame.timestamp_ms,
+            "content_hash": frame.content_hash,
+            "unchanged": frame.unchanged,
+            "blur": frame.blur,
+            "backend": frame.backend,
+            "bytes": len(frame.jpeg),
+            "age_ms": svc.store.age_ms(),
+        }
+
+    @mcp.tool()
+    def save_latest_frame(
+        path: str = "",
+        blur: bool = False,
+        force_capture: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Write the latest JPEG to a local filesystem path (no image tokens in the reply).
+
+        path: destination file; empty → OS data dir / latest.jpg
+        force_capture: ignore store and grab a fresh frame
+        """
+        from pathlib import Path
+
+        from screen_watch.config import data_dir
+
+        svc = get_service()
+        out = Path(path) if path.strip() else data_dir() / "latest.jpg"
+        return svc.save_frame_to(out, blur=blur if blur else None, force_capture=force_capture)
+
+    @mcp.tool()
+    def list_tools() -> dict[str, Any]:
+        """Return the canonical screen-watch MCP tool catalog (names only)."""
+        return {"tools": list(TOOL_NAMES), "count": len(TOOL_NAMES)}
+
+    @mcp.tool()
+    def start_watch() -> dict[str, Any]:
+        """Start the background watch daemon (keeps latest frame fresh)."""
+        svc = get_service()
+        started = svc.daemon.start()
+        return {"ok": True, "started": started, "status": svc.status()}
+
+    @mcp.tool()
+    def stop_watch() -> dict[str, Any]:
+        """Stop the background watch daemon."""
+        svc = get_service()
+        stopped = svc.daemon.stop()
+        return {"ok": True, "stopped": stopped, "status": svc.status()}
+
+    @mcp.tool()
+    def get_watch_status() -> dict[str, Any]:
+        """Return watch/daemon status and last frame metadata."""
+        svc = get_service()
+        data = svc.status()
+        data["privacy"] = privacy_blurb()
+        return data
+
+    @mcp.tool()
+    def list_displays() -> list[dict[str, Any]]:
+        """List available monitors."""
+        return get_service().list_displays()
+
+    @mcp.tool()
+    def get_advisor_summary() -> dict[str, Any]:
+        """PC capacity advice + preferred LLM cost estimates (local, optional)."""
+        state = load_advisor_state()
+        profile = state.get("profile") or recommend_settings(profile_machine())
+        if "profile" not in state:
+            state["profile"] = profile
+            save_advisor_state(state)
+        model_id = state.get("preferred_llm") or get_service().settings.preferred_llm or "gpt-4o"
+        costs = estimate_session_cost(model_id)
+        return {
+            "capacity": profile,
+            "preferred_llm": model_id,
+            "costs": costs,
+            "privacy": privacy_blurb(),
+        }
+
+    @mcp.tool()
+    def set_preferred_llm(model_id: str) -> dict[str, Any]:
+        """Persist the user's preferred vision LLM for cost estimates."""
+        state = load_advisor_state()
+        state["preferred_llm"] = model_id
+        save_advisor_state(state)
+        return {"ok": True, "preferred_llm": model_id, "costs": estimate_session_cost(model_id)}
+
+    @mcp.tool()
+    def run_capacity_profile() -> dict[str, Any]:
+        """Refresh local machine profile and recommendations (never blocks)."""
+        rec = recommend_settings(profile_machine())
+        state = load_advisor_state()
+        state["profile"] = rec
+        save_advisor_state(state)
+        return rec
+
+    @mcp.tool()
+    def list_llm_models() -> list[dict[str, Any]]:
+        """List built-in vision LLM catalog for the cost advisor."""
+        return list_models()
+
+    @mcp.tool()
+    def start_recording(title: str = "") -> dict[str, Any]:
+        """
+        Start an opt-in local recording session (off unless recording.enabled).
+
+        Returns capacity advice but never refuses for hardware reasons.
+        """
+        return _get_recorder().start(title=title or None)
+
+    @mcp.tool()
+    def stop_recording() -> dict[str, Any]:
+        """Stop the active recording session and flush timeline sync hooks."""
+        return _get_recorder().stop()
+
+    @mcp.tool()
+    def list_recordings() -> list[dict[str, Any]]:
+        """List local recording sessions (branch-like artifacts)."""
+        return _get_recorder().list_sessions()
+
+    @mcp.tool()
+    def get_recording_timeline(session_id: str) -> dict[str, Any]:
+        """Return timeline + sync hooks for a recording (agent supplies its own STT)."""
+        return _get_recorder().get_timeline(session_id)
+
+    @mcp.tool()
+    def attach_recording_context(session_id: str) -> dict[str, Any]:
+        """Return recording meta/timeline suitable for injecting into agent context."""
+        data = _get_recorder().get_timeline(session_id)
+        if "error" in data:
+            return data
+        # Compact: omit binary; keep hooks + frame index
+        frames = data.get("frames", [])
+        return {
+            "session_id": data.get("session_id"),
+            "title": data.get("title"),
+            "sync_hooks": data.get("sync_hooks"),
+            "frame_count": data.get("frame_count"),
+            "sample_keyframes": [f for f in frames if not f.get("unchanged")][:20],
+            "note": "No transcript from screen-watch — attach your agent STT using sync_hooks.",
+        }
+
+    @mcp.tool()
+    def get_region_frame(
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        blur: bool = False,
+    ) -> Any:
+        """
+        Capture a region by bbox (screen/capture pixels) for lower token use.
+
+        Returns the cropped JPEG. Prefer guided_region_focus for interactive selection.
+        """
+        from screen_watch.focus.region import BBox
+
+        svc = get_service()
+        result = svc.capture_region(BBox(x, y, width, height), blur=blur, also_full_frame=False)
+        return _image_result(
+            result["region_jpeg"],
+            {"gesture": result["gesture"], "width": result["region_width"], "height": result["region_height"]},
+        )
+
+    @mcp.tool()
+    def guided_region_focus(blur: bool = False) -> dict[str, Any]:
+        """
+        Flash an overlay; user drags a loose box; returns gesture + region JPEG (base64).
+
+        The agent should infer the precise UI element from the loose gesture + pixels.
+        Blocks until release (accept) or Esc (cancel). Also saves under latest_focus/.
+        """
+        import base64
+
+        from screen_watch.focus.hotkey import load_latest_focus
+        from screen_watch.focus.runner import run_guided_focus
+
+        result = run_guided_focus(blur=blur if blur else None)
+        if not result.get("ok"):
+            return {"ok": False, "cancelled": True}
+        latest = load_latest_focus() or {}
+        return {
+            "ok": True,
+            "cancelled": False,
+            "gesture": result["gesture"],
+            "dir": result.get("dir"),
+            "region": {
+                "width": result["region_width"],
+                "height": result["region_height"],
+                "mime": "image/jpeg",
+                "base64": latest.get("region_b64"),
+            },
+            "full_frame": None
+            if not latest.get("full_b64")
+            else {"mime": "image/jpeg", "base64": latest["full_b64"]},
+            "note": result["note"],
+        }
+
+    @mcp.tool()
+    def get_latest_focus() -> dict[str, Any]:
+        """Return the last guided-focus artifacts (from hotkey or guided_region_focus)."""
+        from screen_watch.focus.hotkey import load_latest_focus
+
+        data = load_latest_focus()
+        if data is None:
+            return {"ok": False, "error": "No focus artifacts yet"}
+        return {"ok": True, **data}
+
+    @mcp.tool()
+    def doctor() -> dict[str, Any]:
+        """Report install, capture backend, and optional tool availability."""
+        from screen_watch.doctor import run_doctor
+
+        return run_doctor()
+
+    return mcp
+
+
+def run_server() -> None:
+    """Run MCP over stdio (default for Cursor / Claude Code)."""
+    configure_logging(get_service().settings.log_level)
+    logger.info("Starting screen-watch MCP server")
+    mcp = build_server()
+    mcp.run()
