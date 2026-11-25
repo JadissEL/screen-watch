@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -281,8 +280,6 @@ def build_server() -> Any:
         The agent should infer the precise UI element from the loose gesture + pixels.
         Blocks until release (accept) or Esc (cancel). Also saves under latest_focus/.
         """
-        import base64
-
         from screen_watch.focus.hotkey import load_latest_focus
         from screen_watch.focus.runner import run_guided_focus
 

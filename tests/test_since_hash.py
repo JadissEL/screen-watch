@@ -6,7 +6,7 @@ from screen_watch.capture.mock_backend import MockBackend
 from screen_watch.config import Settings
 from screen_watch.daemon.watcher import WatchDaemon
 from screen_watch.pipeline.frame_store import FrameStore
-from screen_watch.service import ScreenWatchService, get_service, reset_service
+from screen_watch.service import ScreenWatchService, reset_service
 
 
 def _mock_svc(monkeypatch) -> ScreenWatchService:  # type: ignore[no-untyped-def]
