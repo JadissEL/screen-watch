@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9 — 2026-11-25
+
+- Optional user `config.toml` (env still wins); example under `examples/`
+- MCP `get_display_frame` + `bench_capture`; CLI `bench`
+- Docs: config precedence
+
 ## 0.1.8 — 2026-11-25
 
 - Focus overlay covers the full **virtual desktop** on Windows (multi-monitor)

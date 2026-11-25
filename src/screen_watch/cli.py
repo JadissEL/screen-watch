@@ -51,6 +51,9 @@ def main(argv: list[str] | None = None) -> int:
         help="Hotkey spec, e.g. ctrl+shift+f (default from SCREEN_WATCH_FOCUS_HOTKEY)",
     )
     sub.add_parser("doctor", help="Print install / backend / optional-tool status")
+    bench = sub.add_parser("bench", help="Measure grab+encode latency")
+    bench.add_argument("-n", "--iterations", type=int, default=5)
+    bench.add_argument("--display", type=int, default=None, help="1-based monitor id")
 
     args = parser.parse_args(argv)
     settings = load_settings()
@@ -122,6 +125,12 @@ def main(argv: list[str] | None = None) -> int:
         from screen_watch.doctor import run_doctor
 
         print(json.dumps(run_doctor(), indent=2))
+        return 0
+
+    if args.cmd == "bench":
+        reset_service()
+        out = get_service().bench(iterations=args.iterations, display_id=args.display)
+        print(json.dumps(out, indent=2))
         return 0
 
     if args.cmd == "hotkey":

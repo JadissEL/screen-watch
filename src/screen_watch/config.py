@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
@@ -64,9 +65,27 @@ def data_dir() -> Path:
     return Path.home() / ".local" / "share" / "screen-watch"
 
 
+def default_config_path() -> Path:
+    """``config.toml`` under the user config directory."""
+    return config_dir() / "config.toml"
+
+
+def load_toml_file(path: Path | None = None) -> dict[str, Any]:
+    """Load optional TOML config; missing file → empty dict."""
+    cfg_path = path or default_config_path()
+    env_path = os.environ.get("SCREEN_WATCH_CONFIG")
+    if env_path:
+        cfg_path = Path(env_path)
+    if not cfg_path.is_file():
+        return {}
+    with cfg_path.open("rb") as fh:
+        data = tomllib.load(fh)
+    return data if isinstance(data, dict) else {}
+
+
 @dataclass
 class Settings:
-    """Runtime settings. All knobs are overridable via env `SCREEN_WATCH_*`."""
+    """Runtime settings. Precedence: constructor overrides > env > config.toml > defaults."""
 
     max_width: int = DEFAULT_MAX_WIDTH
     max_height: int = DEFAULT_MAX_HEIGHT
@@ -89,42 +108,70 @@ class Settings:
 
 
 def load_settings(**overrides: Any) -> Settings:
-    """Load settings from environment, then apply explicit overrides."""
-    backend_raw = os.environ.get("SCREEN_WATCH_BACKEND", "auto").strip().lower()
+    """Load settings from config.toml, then environment, then explicit overrides."""
+    file_cfg = load_toml_file()
+
+    def fget(key: str, default: Any) -> Any:
+        return file_cfg[key] if key in file_cfg else default
+
+    backend_default = str(fget("backend", "auto")).strip().lower()
+    backend_raw = os.environ.get("SCREEN_WATCH_BACKEND", backend_default).strip().lower()
     backend: BackendName
     if backend_raw in {"auto", "mss", "dxcam", "sck", "pipewire"}:
         backend = backend_raw  # type: ignore[assignment]
     else:
         backend = "auto"
 
+    display_file = fget("display", None)
     display_raw = os.environ.get("SCREEN_WATCH_DISPLAY")
     display: int | None
-    if display_raw is None or display_raw.strip() == "":
+    if display_raw is not None and display_raw.strip() != "":
+        display = int(display_raw)
+    elif display_file is None or display_file == "":
         display = None
     else:
-        display = int(display_raw)
+        display = int(display_file)
 
     settings = Settings(
-        max_width=_env_int("SCREEN_WATCH_MAX_WIDTH", DEFAULT_MAX_WIDTH),
-        max_height=_env_int("SCREEN_WATCH_MAX_HEIGHT", DEFAULT_MAX_HEIGHT),
-        fps=_env_float("SCREEN_WATCH_FPS", DEFAULT_FPS),
-        jpeg_quality=_env_int("SCREEN_WATCH_JPEG_QUALITY", DEFAULT_JPEG_QUALITY),
-        change_threshold=_env_float("SCREEN_WATCH_CHANGE_THRESHOLD", DEFAULT_CHANGE_THRESHOLD),
+        max_width=_env_int("SCREEN_WATCH_MAX_WIDTH", int(fget("max_width", DEFAULT_MAX_WIDTH))),
+        max_height=_env_int("SCREEN_WATCH_MAX_HEIGHT", int(fget("max_height", DEFAULT_MAX_HEIGHT))),
+        fps=_env_float("SCREEN_WATCH_FPS", float(fget("fps", DEFAULT_FPS))),
+        jpeg_quality=_env_int(
+            "SCREEN_WATCH_JPEG_QUALITY", int(fget("jpeg_quality", DEFAULT_JPEG_QUALITY))
+        ),
+        change_threshold=_env_float(
+            "SCREEN_WATCH_CHANGE_THRESHOLD",
+            float(fget("change_threshold", DEFAULT_CHANGE_THRESHOLD)),
+        ),
         backend=backend,
         display=display,
-        blur=_env_bool("SCREEN_WATCH_BLUR", DEFAULT_BLUR),
-        blur_block=_env_int("SCREEN_WATCH_BLUR_BLOCK", DEFAULT_BLUR_BLOCK),
-        log_level=os.environ.get("SCREEN_WATCH_LOG_LEVEL", "INFO").upper(),
-        recording_enabled=_env_bool("SCREEN_WATCH_RECORDING_ENABLED", False),
-        preferred_llm=os.environ.get("SCREEN_WATCH_PREFERRED_LLM") or None,
-        focus_hotkey=os.environ.get("SCREEN_WATCH_FOCUS_HOTKEY", "ctrl+shift+f"),
+        blur=_env_bool("SCREEN_WATCH_BLUR", bool(fget("blur", DEFAULT_BLUR))),
+        blur_block=_env_int(
+            "SCREEN_WATCH_BLUR_BLOCK", int(fget("blur_block", DEFAULT_BLUR_BLOCK))
+        ),
+        log_level=os.environ.get(
+            "SCREEN_WATCH_LOG_LEVEL", str(fget("log_level", "INFO"))
+        ).upper(),
+        recording_enabled=_env_bool(
+            "SCREEN_WATCH_RECORDING_ENABLED",
+            bool(fget("recording_enabled", False)),
+        ),
+        preferred_llm=(
+            os.environ.get("SCREEN_WATCH_PREFERRED_LLM")
+            or (str(fget("preferred_llm", "")) or None)
+        ),
+        focus_hotkey=os.environ.get(
+            "SCREEN_WATCH_FOCUS_HOTKEY",
+            str(fget("focus_hotkey", "ctrl+shift+f")),
+        ),
         min_capture_interval_s=_env_float(
-            "SCREEN_WATCH_MIN_CAPTURE_INTERVAL", DEFAULT_MIN_CAPTURE_INTERVAL
+            "SCREEN_WATCH_MIN_CAPTURE_INTERVAL",
+            float(fget("min_capture_interval_s", DEFAULT_MIN_CAPTURE_INTERVAL)),
         ),
     )
-    rec = os.environ.get("SCREEN_WATCH_RECORDINGS_DIR")
+    rec = os.environ.get("SCREEN_WATCH_RECORDINGS_DIR") or fget("recordings_dir", None)
     if rec:
-        settings.recordings_dir = Path(rec)
+        settings.recordings_dir = Path(str(rec))
 
     for key, value in overrides.items():
         if value is not None and hasattr(settings, key):

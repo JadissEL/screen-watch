@@ -5,11 +5,13 @@ from __future__ import annotations
 TOOL_NAMES: tuple[str, ...] = (
     "get_latest_frame",
     "get_latest_frame_info",
+    "get_display_frame",
     "save_latest_frame",
     "start_watch",
     "stop_watch",
     "get_watch_status",
     "list_displays",
+    "bench_capture",
     "list_tools",
     "get_advisor_summary",
     "set_preferred_llm",

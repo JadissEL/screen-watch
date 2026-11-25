@@ -119,6 +119,40 @@ def build_server() -> Any:
             "age_ms": svc.store.age_ms(),
         }
     @mcp.tool()
+    def get_display_frame(
+        display_id: int,
+        blur: bool = False,
+        since_hash: str = "",
+    ) -> Any:
+        """
+        Capture a specific monitor by id (from list_displays).
+
+        since_hash: skip image bytes when the hash still matches.
+        """
+        svc = get_service()
+        frame = svc.capture_once(blur=blur if blur else None, display_id=display_id)
+        meta = {
+            "width": frame.width,
+            "height": frame.height,
+            "timestamp_ms": frame.timestamp_ms,
+            "content_hash": frame.content_hash,
+            "unchanged": frame.unchanged,
+            "blur": frame.blur,
+            "backend": frame.backend,
+            "display_id": frame.display_id,
+        }
+        if since_hash and since_hash == frame.content_hash:
+            return {"unchanged": True, "skipped_image": True, **meta}
+        return _image_result(frame.jpeg, meta)
+
+    @mcp.tool()
+    def bench_capture(iterations: int = 5, display_id: int = 0) -> dict[str, Any]:
+        """Measure local grab+encode latency (ms). display_id 0 = default/primary."""
+        svc = get_service()
+        target = None if display_id <= 0 else display_id
+        return svc.bench(iterations=iterations, display_id=target)
+
+    @mcp.tool()
     def save_latest_frame(
         path: str = "",
         blur: bool = False,

@@ -40,6 +40,9 @@ python -m screen_watch advise --model gpt-4o
 # Backend / deps check
 python -m screen_watch doctor
 
+# Grab+encode latency
+python -m screen_watch bench -n 5
+
 # MCP stdio server (default)
 python -m screen_watch serve
 ```
@@ -77,7 +80,9 @@ See [docs/CONFIG.md](docs/CONFIG.md).
 |------|---------|
 | `get_latest_frame` | Latest JPEG (`blur`, `since_hash` to skip identical frames) |
 | `get_latest_frame_info` | Frame metadata only (no image bytes; supports `since_hash`) |
+| `get_display_frame` | Capture a specific monitor id |
 | `save_latest_frame` | Write JPEG to a local path (no image tokens) |
+| `bench_capture` | Local grab+encode latency (ms) |
 | `list_tools` | Canonical tool name catalog |
 | `start_watch` / `stop_watch` / `get_watch_status` | Background daemon |
 | `list_displays` | Monitors |

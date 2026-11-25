@@ -373,6 +373,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **Capture gating** | Serialize grabs + min interval; `get_latest_frame_info` | **Done (0.1.5)** |
 | **P4 hardening slice** | Path export tool, tool catalog, PERF.md, configurable gate, py.typed | **Done (0.1.6)** |
 | **since_hash + release CI** | Client hash short-circuit; project.urls; release workflow; public GitHub | **Done (0.1.7)** |
+| **config.toml + per-display + bench** | User TOML config; `get_display_frame`; latency bench | **Done (0.1.9)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

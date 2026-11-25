@@ -64,12 +64,18 @@ class ScreenWatchService:
             for d in backend.list_displays()
         ]
 
-    def capture_once(self, *, blur: bool | None = None) -> EncodedFrame:
+    def capture_once(
+        self,
+        *,
+        blur: bool | None = None,
+        display_id: int | None = None,
+    ) -> EncodedFrame:
         """One-shot grab through the pipeline (ignores unchanged short-circuit for callers that need bytes)."""
         self._gate.wait()
         with self._grab_lock:
             backend = create_backend(self.settings)
-            raw = backend.grab(self.settings.display)
+            target = self.settings.display if display_id is None else display_id
+            raw = backend.grab(target)
             encoded, self._thumb = process_raw_frame(
                 raw,
                 self.settings,
@@ -79,6 +85,31 @@ class ScreenWatchService:
             )
             self.store.set(encoded)
             return encoded
+
+    def bench(self, *, iterations: int = 5, display_id: int | None = None) -> dict[str, Any]:
+        """Measure grab+encode latency (local diagnostics; never blocks agents)."""
+        import time
+
+        n = max(1, min(int(iterations), 50))
+        samples_ms: list[float] = []
+        last: EncodedFrame | None = None
+        for _ in range(n):
+            t0 = time.perf_counter()
+            last = self.capture_once(display_id=display_id)
+            samples_ms.append((time.perf_counter() - t0) * 1000.0)
+        samples_ms.sort()
+        return {
+            "iterations": n,
+            "display_id": display_id if display_id is not None else self.settings.display,
+            "backend": last.backend if last else self.backend_name,
+            "width": last.width if last else None,
+            "height": last.height if last else None,
+            "jpeg_bytes": len(last.jpeg) if last else None,
+            "ms_min": round(samples_ms[0], 2),
+            "ms_median": round(samples_ms[len(samples_ms) // 2], 2),
+            "ms_max": round(samples_ms[-1], 2),
+            "ms_mean": round(sum(samples_ms) / len(samples_ms), 2),
+        }
 
     def latest_for_agent(self, *, blur: bool | None = None) -> EncodedFrame:
         """
