@@ -31,7 +31,7 @@ pip install -e ".[hotkey]"    # pynput (macOS/Linux global hotkeys)
 ## Quick use
 
 ```bash
-# One-shot smoke capture
+# One-shot smoke capture (optional --display N)
 python -m screen_watch once -o desk.jpg
 
 # Capacity + LLM cost advice (local)
@@ -111,7 +111,7 @@ Hash-poll demo: [examples/poll_since_hash.py](examples/poll_since_hash.py).
 2. **Pipeline** — downsample → optional blur → change-detect → JPEG.
 3. **MCP** — identical tool surface on every OS.
 
-Performance: reduced resolution, JPEG, change-only sending — see [docs/PERF.md](docs/PERF.md). Privacy: [docs/PRIVACY.md](docs/PRIVACY.md). Security: [docs/SECURITY.md](docs/SECURITY.md). Token costs: [docs/TOKEN_COSTS.md](docs/TOKEN_COSTS.md). Plan: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+MCP reference: [docs/MCP.md](docs/MCP.md). Performance: [docs/PERF.md](docs/PERF.md). Privacy: [docs/PRIVACY.md](docs/PRIVACY.md). Security: [docs/SECURITY.md](docs/SECURITY.md). Token costs: [docs/TOKEN_COSTS.md](docs/TOKEN_COSTS.md). Plan: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
 
 ## License
 

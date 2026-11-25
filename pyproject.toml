@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "screen-watch"
-version = "0.1.9"
+version = "0.1.10"
 description = "Passive, read-only desktop observation for AI agents via MCP"
 readme = "README.md"
 license = "MIT"
@@ -62,3 +62,7 @@ pythonpath = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
+# Keep CI deterministic: classic pyflakes/pycodestyle + import sort.
+select = ["E4", "E7", "E9", "F", "I"]

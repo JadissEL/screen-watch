@@ -30,6 +30,7 @@ def main(argv: list[str] | None = None) -> int:
     once = sub.add_parser("once", help="Capture one JPEG and save to disk")
     once.add_argument("-o", "--output", type=Path, default=Path("screen-watch-once.jpg"))
     once.add_argument("--blur", action="store_true", help="Pixelate the frame")
+    once.add_argument("--display", type=int, default=None, help="1-based monitor id")
     sub.add_parser("status", help="Print backend / config status")
     advise = sub.add_parser("advise", help="PC capacity + LLM cost summary")
     advise.add_argument("--model", help="Preferred LLM id (persisted)")
@@ -68,9 +69,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "once":
         reset_service()
         svc = get_service()
-        frame = svc.capture_once(blur=True if args.blur else None)
+        frame = svc.capture_once(
+            blur=True if args.blur else None,
+            display_id=args.display,
+        )
         args.output.write_bytes(frame.jpeg)
-        print(f"Wrote {args.output} ({frame.width}x{frame.height}, {len(frame.jpeg)} bytes)", file=sys.stderr)
+        print(
+            f"Wrote {args.output} ({frame.width}x{frame.height}, {len(frame.jpeg)} bytes"
+            f", display={frame.display_id})",
+            file=sys.stderr,
+        )
         return 0
 
     if args.cmd == "status":

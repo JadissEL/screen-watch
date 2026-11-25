@@ -6,7 +6,6 @@ import re
 import urllib.parse
 from pathlib import Path
 
-
 _FILE_URI_RE = re.compile(r"(file://[^\s'\">\],]+)")
 
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.10 — 2026-11-25
+
+- MCP resources: `screen://privacy`, `screen://status`, `screen://tools`
+- CLI `once --display`; docs/MCP.md
+- Pin ruff lint rule set in `pyproject.toml` so CI stays deterministic
+
 ## 0.1.9 — 2026-11-25
 
 - Optional user `config.toml` (env still wins); example under `examples/`

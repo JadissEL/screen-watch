@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -59,6 +60,27 @@ def build_server() -> Any:
         from mcp.server import MCPServer as FastMCP  # type: ignore
 
         mcp = FastMCP("screen-watch")
+
+    # Resources (best-effort — older MCPServer builds may lack @resource)
+    try:
+
+        @mcp.resource("screen://privacy")
+        def privacy_resource() -> str:
+            """Local privacy blurb for agents."""
+            return privacy_blurb()
+
+        @mcp.resource("screen://status")
+        def status_resource() -> str:
+            """JSON watch/capture status (no image bytes)."""
+            return json.dumps(get_service().status(), indent=2)
+
+        @mcp.resource("screen://tools")
+        def tools_resource() -> str:
+            """Canonical tool name catalog."""
+            return json.dumps({"tools": list(TOOL_NAMES), "count": len(TOOL_NAMES)}, indent=2)
+
+    except Exception:
+        logger.debug("MCP resources not registered on this SDK", exc_info=True)
 
     @mcp.tool()
     def get_latest_frame(blur: bool = False, since_hash: str = "") -> Any:

@@ -6,8 +6,8 @@ from pathlib import Path
 
 from screen_watch.capture.mock_backend import MockBackend
 from screen_watch.config import load_settings
-from screen_watch.pipeline.frame_store import FrameStore
 from screen_watch.daemon.watcher import WatchDaemon
+from screen_watch.pipeline.frame_store import FrameStore
 from screen_watch.service import ScreenWatchService, reset_service
 
 

@@ -11,7 +11,11 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from screen_watch.advisor.profiler import capacity_advice_message, profile_machine, recommend_settings
+from screen_watch.advisor.profiler import (
+    capacity_advice_message,
+    profile_machine,
+    recommend_settings,
+)
 from screen_watch.capture.factory import create_backend
 from screen_watch.config import Settings
 from screen_watch.pipeline.process import process_raw_frame
