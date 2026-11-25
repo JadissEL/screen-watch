@@ -200,9 +200,15 @@ def build_server() -> Any:
         return {"tools": list(TOOL_NAMES), "count": len(TOOL_NAMES)}
 
     @mcp.tool()
-    def start_watch() -> dict[str, Any]:
-        """Start the background watch daemon (keeps latest frame fresh)."""
+    def start_watch(display_id: int = 0) -> dict[str, Any]:
+        """
+        Start the background watch daemon (keeps latest frame fresh).
+
+        display_id: 1-based monitor from list_displays; 0 keeps current/primary.
+        """
         svc = get_service()
+        if display_id > 0:
+            svc.set_display(display_id)
         started = svc.daemon.start()
         return {"ok": True, "started": started, "status": svc.status()}
 
@@ -212,6 +218,14 @@ def build_server() -> Any:
         svc = get_service()
         stopped = svc.daemon.stop()
         return {"ok": True, "stopped": stopped, "status": svc.status()}
+
+    @mcp.tool()
+    def set_capture_display(display_id: int = 0) -> dict[str, Any]:
+        """
+        Set default monitor for watch / get_latest_frame (1-based; 0 = primary/auto).
+        """
+        svc = get_service()
+        return svc.set_display(None if display_id <= 0 else display_id)
 
     @mcp.tool()
     def get_watch_status() -> dict[str, Any]:

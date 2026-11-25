@@ -84,7 +84,8 @@ See [docs/CONFIG.md](docs/CONFIG.md).
 | `save_latest_frame` | Write JPEG to a local path (no image tokens) |
 | `bench_capture` | Local grab+encode latency (ms) |
 | `list_tools` | Canonical tool name catalog |
-| `start_watch` / `stop_watch` / `get_watch_status` | Background daemon |
+| `start_watch` / `stop_watch` / `get_watch_status` | Background daemon (`display_id` optional) |
+| `set_capture_display` | Default monitor for watch / latest |
 | `list_displays` | Monitors |
 | `get_advisor_summary` / `set_preferred_llm` / `run_capacity_profile` / `list_llm_models` | Local advisor |
 | `start_recording` / `stop_recording` / `list_recordings` / `get_recording_timeline` / `attach_recording_context` | Opt-in local sessions |

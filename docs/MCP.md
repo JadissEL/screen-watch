@@ -19,7 +19,8 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 | `get_display_frame` | Specific monitor id |
 | `save_latest_frame` | Write JPEG to disk path |
 | `bench_capture` | Local latency ms |
-| `start_watch` / `stop_watch` / `get_watch_status` | Daemon |
+| `start_watch` / `stop_watch` / `get_watch_status` | Daemon (`start_watch(display_id=…)`) |
+| `set_capture_display` | Default monitor for watch / latest frame |
 | `list_displays` | Monitors |
 | `list_tools` | Same catalog as `screen://tools` |
 | `get_advisor_summary` / `set_preferred_llm` / `run_capacity_profile` / `list_llm_models` | Local advisor |

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.11 — 2026-11-25
+
+- `start_watch(display_id)` + MCP `set_capture_display`; status exposes `display`
+- CI wheel smoke build; issue templates; PyPI publish only when token is set
+
 ## 0.1.10 — 2026-11-25
 
 - MCP resources: `screen://privacy`, `screen://status`, `screen://tools`

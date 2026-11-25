@@ -64,6 +64,20 @@ class ScreenWatchService:
             for d in backend.list_displays()
         ]
 
+    def set_display(self, display_id: int | None) -> dict[str, Any]:
+        """
+        Set the default monitor for watch/one-shot grabs (1-based; None = primary).
+
+        Takes effect on the next grab; the watch daemon reads settings each tick.
+        """
+        self.settings.display = display_id
+        return {
+            "ok": True,
+            "display": display_id,
+            "watch_running": self.daemon.running,
+            "status": self.status(),
+        }
+
     def capture_once(
         self,
         *,
@@ -228,6 +242,7 @@ class ScreenWatchService:
             "jpeg_quality": self.settings.jpeg_quality,
             "blur_default": self.settings.blur,
             "min_capture_interval_s": self.settings.min_capture_interval_s,
+            "display": self.settings.display,
             "recording_enabled": self.settings.recording_enabled,
             "last_error": self.daemon.last_error,
             "frame": None
