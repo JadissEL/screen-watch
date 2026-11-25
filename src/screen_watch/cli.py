@@ -55,6 +55,14 @@ def main(argv: list[str] | None = None) -> int:
     bench = sub.add_parser("bench", help="Measure grab+encode latency")
     bench.add_argument("-n", "--iterations", type=int, default=5)
     bench.add_argument("--display", type=int, default=None, help="1-based monitor id")
+    watch = sub.add_parser("watch", help="Run capture daemon in the foreground (stderr logs)")
+    watch.add_argument("--display", type=int, default=None, help="1-based monitor id")
+    watch.add_argument(
+        "--seconds",
+        type=float,
+        default=0.0,
+        help="Stop after N seconds (0 = until Ctrl+C)",
+    )
 
     args = parser.parse_args(argv)
     settings = load_settings()
@@ -139,6 +147,41 @@ def main(argv: list[str] | None = None) -> int:
         reset_service()
         out = get_service().bench(iterations=args.iterations, display_id=args.display)
         print(json.dumps(out, indent=2))
+        return 0
+
+    if args.cmd == "watch":
+        import time
+
+        reset_service()
+        svc = get_service()
+        if args.display is not None:
+            svc.set_display(args.display)
+        svc.daemon.start()
+        print(
+            f"Watching via {svc.backend_name} @ {svc.settings.capped_fps()} FPS "
+            f"(display={svc.settings.display}). Ctrl+C to stop.",
+            file=sys.stderr,
+        )
+        started = time.time()
+        last_hash = ""
+        try:
+            while True:
+                if args.seconds > 0 and (time.time() - started) >= args.seconds:
+                    break
+                frame = svc.store.get()
+                if frame is not None and frame.content_hash != last_hash:
+                    print(
+                        f"change hash={frame.content_hash[:12]}… "
+                        f"{frame.width}x{frame.height} bytes={len(frame.jpeg)}",
+                        file=sys.stderr,
+                    )
+                    last_hash = frame.content_hash
+                time.sleep(0.2)
+        except KeyboardInterrupt:
+            print("Stopping watch…", file=sys.stderr)
+        finally:
+            svc.daemon.stop()
+            reset_service()
         return 0
 
     if args.cmd == "hotkey":

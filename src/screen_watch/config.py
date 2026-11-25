@@ -20,6 +20,7 @@ DEFAULT_FPS_CAP = 5.0
 DEFAULT_BLUR = False
 DEFAULT_BLUR_BLOCK = 16
 DEFAULT_MIN_CAPTURE_INTERVAL = 0.12
+DEFAULT_HISTORY_SIZE = 64
 
 
 def _env_float(name: str, default: float) -> float:
@@ -102,6 +103,7 @@ class Settings:
     preferred_llm: str | None = None
     focus_hotkey: str = "ctrl+shift+f"
     min_capture_interval_s: float = DEFAULT_MIN_CAPTURE_INTERVAL
+    history_size: int = DEFAULT_HISTORY_SIZE
 
     def capped_fps(self) -> float:
         return max(0.1, min(float(self.fps), DEFAULT_FPS_CAP))
@@ -167,6 +169,10 @@ def load_settings(**overrides: Any) -> Settings:
         min_capture_interval_s=_env_float(
             "SCREEN_WATCH_MIN_CAPTURE_INTERVAL",
             float(fget("min_capture_interval_s", DEFAULT_MIN_CAPTURE_INTERVAL)),
+        ),
+        history_size=_env_int(
+            "SCREEN_WATCH_HISTORY_SIZE",
+            int(fget("history_size", DEFAULT_HISTORY_SIZE)),
         ),
     )
     rec = os.environ.get("SCREEN_WATCH_RECORDINGS_DIR") or fget("recordings_dir", None)

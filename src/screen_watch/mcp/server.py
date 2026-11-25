@@ -151,6 +151,22 @@ def build_server() -> Any:
             "age_ms": svc.store.age_ms(),
         }
     @mcp.tool()
+    def get_frame_history(limit: int = 20, changed_only: bool = False) -> dict[str, Any]:
+        """
+        Return newest-first frame metadata from the watch ring buffer (no image bytes).
+
+        Useful to see when the desktop last changed without paying image tokens.
+        """
+        svc = get_service()
+        entries = svc.store.history(limit=limit, changed_only=changed_only)
+        return {
+            "count": len(entries),
+            "history_len": svc.store.history_len(),
+            "changed_only": changed_only,
+            "entries": entries,
+        }
+
+    @mcp.tool()
     def get_display_frame(
         display_id: int,
         blur: bool = False,

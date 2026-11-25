@@ -40,7 +40,7 @@ class ScreenWatchService:
     def create(cls, settings: Settings | None = None) -> ScreenWatchService:
         cfg = settings or load_settings()
         backend = create_backend(cfg)
-        store = FrameStore()
+        store = FrameStore(history_size=cfg.history_size)
         daemon = WatchDaemon(backend, store, cfg)
         return cls(
             settings=cfg,
@@ -243,6 +243,8 @@ class ScreenWatchService:
             "blur_default": self.settings.blur,
             "min_capture_interval_s": self.settings.min_capture_interval_s,
             "display": self.settings.display,
+            "history_len": self.store.history_len(),
+            "history_size": self.settings.history_size,
             "recording_enabled": self.settings.recording_enabled,
             "last_error": self.daemon.last_error,
             "frame": None

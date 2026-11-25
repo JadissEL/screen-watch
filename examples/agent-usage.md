@@ -11,7 +11,8 @@ Observation-only. Prefer hash polling so identical frames are not re-billed.
      if info.unchanged_vs_client: continue
      frame = get_latest_frame(since_hash=last)   # or save_latest_frame
      last = info.content_hash
-5. for UI detail: guided_region_focus / get_region_frame
+5. optional: get_frame_history(changed_only=true) for a change timeline
+6. for UI detail: guided_region_focus / get_region_frame
 ```
 
 Cursor MCP snippet: [cursor-mcp.json](cursor-mcp.json).  

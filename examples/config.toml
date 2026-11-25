@@ -13,6 +13,7 @@ backend = "auto"
 # display = 1
 blur = false
 min_capture_interval_s = 0.12
+history_size = 64
 # recording_enabled = false
 # focus_hotkey = "ctrl+shift+f"
 # preferred_llm = "gpt-4o"

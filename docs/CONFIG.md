@@ -29,5 +29,6 @@ Example: [examples/config.toml](../examples/config.toml).
 | `SCREEN_WATCH_PREFERRED_LLM` | — | Advisor default model id |
 | `SCREEN_WATCH_FOCUS_HOTKEY` | ctrl+shift+f | Global focus hotkey (Windows `hotkey` command) |
 | `SCREEN_WATCH_MIN_CAPTURE_INTERVAL` | 0.12 | Min seconds between MCP/CLI one-shot grabs |
+| `SCREEN_WATCH_HISTORY_SIZE` | 64 | Metadata ring buffer size for `get_frame_history` |
 | `SCREEN_WATCH_CONFIG` | (default path) | Override path to `config.toml` |
 | `SCREEN_WATCH_LOG_LEVEL` | INFO | Logging (stderr only) |

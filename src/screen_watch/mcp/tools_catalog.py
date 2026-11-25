@@ -6,6 +6,7 @@ TOOL_NAMES: tuple[str, ...] = (
     "get_version",
     "get_latest_frame",
     "get_latest_frame_info",
+    "get_frame_history",
     "get_display_frame",
     "save_latest_frame",
     "start_watch",

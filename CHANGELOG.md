@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.13 — 2026-11-25
+
+- Frame metadata ring buffer + MCP `get_frame_history` (`changed_only`)
+- CLI `watch` foreground daemon; `SCREEN_WATCH_HISTORY_SIZE` / config.toml `history_size`
+
 ## 0.1.12 — 2026-11-25
 
 - Virtual-screen geometry via mss on non-Windows (better multi-monitor focus)
