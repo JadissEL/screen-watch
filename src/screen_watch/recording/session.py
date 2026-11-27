@@ -172,21 +172,65 @@ class RecordingManager:
             data["meta"] = json.loads(meta.read_text(encoding="utf-8"))
         return data
 
-    def delete_session(self, session_id: str) -> dict[str, Any]:
-        """Delete a finished session directory (path-traversal safe)."""
+    def _session_dir(self, session_id: str) -> tuple[Path | None, dict[str, Any] | None]:
+        """Resolve a session directory under recordings root (path-traversal safe)."""
         sid = Path(session_id).name
         if not sid or sid in {".", ".."}:
-            return {"ok": False, "error": "Invalid session id"}
-        with self._lock:
-            if self._active is not None and self._active.id == sid:
-                return {"ok": False, "error": "Stop the active recording before deleting it"}
+            return None, {"ok": False, "error": "Invalid session id"}
         path = (self._root / sid).resolve()
         try:
             path.relative_to(self._root.resolve())
         except ValueError:
-            return {"ok": False, "error": "Invalid session path"}
+            return None, {"ok": False, "error": "Invalid session path"}
         if not path.is_dir():
-            return {"ok": False, "error": f"No session {sid}"}
+            return None, {"ok": False, "error": f"No session {sid}"}
+        return path, None
+
+    def rename_session(self, session_id: str, title: str) -> dict[str, Any]:
+        """Rename a session (active or finished). Updates meta.json and timeline title."""
+        new_title = (title or "").strip()
+        if not new_title:
+            return {"ok": False, "error": "Title must be non-empty"}
+        if len(new_title) > 200:
+            return {"ok": False, "error": "Title too long (max 200 chars)"}
+        path, err = self._session_dir(session_id)
+        if err is not None:
+            return err
+        assert path is not None
+        sid = path.name
+        with self._lock:
+            if self._active is not None and self._active.id == sid:
+                self._active.title = new_title
+        meta_path = path / "meta.json"
+        meta: dict[str, Any] = {}
+        if meta_path.exists():
+            try:
+                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            except Exception:
+                meta = {"id": sid}
+        meta["id"] = sid
+        meta["title"] = new_title
+        meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        tl_path = path / "timeline.json"
+        if tl_path.exists():
+            try:
+                data = json.loads(tl_path.read_text(encoding="utf-8"))
+                data["title"] = new_title
+                tl_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+            except Exception:
+                logger.debug("timeline title update skipped for %s", sid, exc_info=True)
+        return {"ok": True, "session_id": sid, "title": new_title}
+
+    def delete_session(self, session_id: str) -> dict[str, Any]:
+        """Delete a finished session directory (path-traversal safe)."""
+        path, err = self._session_dir(session_id)
+        if err is not None:
+            return err
+        assert path is not None
+        sid = path.name
+        with self._lock:
+            if self._active is not None and self._active.id == sid:
+                return {"ok": False, "error": "Stop the active recording before deleting it"}
         shutil.rmtree(path)
         return {"ok": True, "deleted": sid}
 
@@ -202,19 +246,14 @@ class RecordingManager:
 
         Default dest: ``<recordings_dir>/<id>.zip``.
         """
-        sid = Path(session_id).name
-        if not sid or sid in {".", ".."}:
-            return {"ok": False, "error": "Invalid session id"}
+        sess, err = self._session_dir(session_id)
+        if err is not None:
+            return err
+        assert sess is not None
+        sid = sess.name
         with self._lock:
             if self._active is not None and self._active.id == sid:
                 return {"ok": False, "error": "Stop the active recording before exporting"}
-        sess = (self._root / sid).resolve()
-        try:
-            sess.relative_to(self._root.resolve())
-        except ValueError:
-            return {"ok": False, "error": "Invalid session path"}
-        if not sess.is_dir():
-            return {"ok": False, "error": f"No session {sid}"}
 
         out = Path(dest) if dest else (self._root / f"{sid}.zip")
         out = out.resolve()

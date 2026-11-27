@@ -52,6 +52,9 @@ python -m screen_watch wait --timeout 30 --start-watch
 # Zip a finished recording session
 python -m screen_watch export <session_id> --keyframes-only
 
+# Rename a recording session
+python -m screen_watch rename <session_id> "pilot review"
+
 # MCP stdio server (default)
 python -m screen_watch serve
 ```

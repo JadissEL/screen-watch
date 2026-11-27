@@ -430,6 +430,11 @@ def build_server() -> Any:
         return _get_recorder().delete_session(session_id)
 
     @mcp.tool()
+    def rename_recording(session_id: str, title: str) -> dict[str, Any]:
+        """Rename a local recording session (active or finished)."""
+        return _get_recorder().rename_session(session_id, title)
+
+    @mcp.tool()
     def export_recording(
         session_id: str,
         dest: str = "",

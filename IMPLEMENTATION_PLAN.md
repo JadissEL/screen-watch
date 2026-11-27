@@ -389,6 +389,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **export_recording** | Zip finished session locally (keyframes-only option) | **Done (0.2.8)** |
 | **CLI wait/export** | ``screen-watch wait`` / ``export`` wrappers | **Done (0.2.9)** |
 | **get_change_region** | Thumb-diff bbox + optional crop JPEG for agents | **Done (0.2.10)** |
+| **rename_recording** | Rename session title (MCP + CLI); shared session path guard | **Done (0.2.11)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

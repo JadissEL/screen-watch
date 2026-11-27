@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.11 — 2026-11-27
+
+- MCP/CLI ``rename_recording`` / ``screen-watch rename`` for session titles
+- Shared ``_session_dir`` path guard for delete/export/rename
+
 ## 0.2.10 — 2026-11-27
 
 - MCP ``get_change_region`` — bbox (+ optional crop) of pixels changed since last call

@@ -81,6 +81,9 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Include meta/timeline + changed JPEGs only",
     )
+    rename = sub.add_parser("rename", help="Rename a recording session title")
+    rename.add_argument("session_id", help="Recording session id")
+    rename.add_argument("title", help="New title")
 
     args = parser.parse_args(argv)
     settings = load_settings()
@@ -197,6 +200,14 @@ def main(argv: list[str] | None = None) -> int:
             dest=args.output,
             keyframes_only=args.keyframes_only,
         )
+        print(json.dumps(out, indent=2))
+        return 0 if out.get("ok") else 1
+
+    if args.cmd == "rename":
+        from screen_watch.recording.session import RecordingManager
+
+        mgr = RecordingManager(settings)
+        out = mgr.rename_session(args.session_id, args.title)
         print(json.dumps(out, indent=2))
         return 0 if out.get("ok") else 1
 
