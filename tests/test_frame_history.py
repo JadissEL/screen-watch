@@ -35,3 +35,15 @@ def test_history_maxlen() -> None:
     store.set(_frame("3"))
     assert store.history_len() == 2
     assert store.history(limit=10)[0]["content_hash"] == "3"
+
+
+def test_history_min_change_score() -> None:
+    store = FrameStore(history_size=10)
+    low = _frame("low")
+    low.change_score = 1.0
+    high = _frame("high")
+    high.change_score = 10.0
+    store.set(low)
+    store.set(high)
+    hist = store.history(limit=10, min_change_score=5.0)
+    assert [h["content_hash"] for h in hist] == ["high"]

@@ -379,6 +379,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **Cross-OS virtual screen + ops** | mss virtual geometry; get_version; Dependabot; SECURITY.md | **Done (0.1.12)** |
 | **Frame history** | Metadata ring buffer; `get_frame_history`; CLI `watch` | **Done (0.1.13)** |
 | **0.2 stable surface** | STABLE_API.md; `change_score`; Actions v7 | **Done (0.2.0)** |
+| **Idle backoff** | Adaptive watch interval when unchanged; history score filter | **Done (0.2.1)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

@@ -19,6 +19,17 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def idle_wait_factor(unchanged_streak: int, *, enabled: bool, max_factor: float) -> float:
+    """
+    Scale the base watch interval when the desktop is static.
+
+    streak 0 → 1.0; grows by 0.25 per unchanged tick, capped at max_factor.
+    """
+    if not enabled or unchanged_streak <= 0:
+        return 1.0
+    return min(max(1.0, float(max_factor)), 1.0 + unchanged_streak * 0.25)
+
+
 class WatchDaemon:
     """Continuously capture → pipeline → FrameStore."""
 
@@ -36,6 +47,7 @@ class WatchDaemon:
         self._thumb: Image.Image | None = None
         self._last_error: str | None = None
         self._started_at: float | None = None
+        self._unchanged_streak: int = 0
 
     @property
     def running(self) -> bool:
@@ -49,12 +61,17 @@ class WatchDaemon:
     def started_at(self) -> float | None:
         return self._started_at
 
+    @property
+    def unchanged_streak(self) -> int:
+        return self._unchanged_streak
+
     def start(self) -> bool:
         """Start the loop. Idempotent. Returns True if newly started."""
         if self.running:
             return False
         self._stop.clear()
         self._started_at = time.time()
+        self._unchanged_streak = 0
         self._thread = threading.Thread(target=self._run, name="screen-watch-daemon", daemon=True)
         self._thread.start()
         logger.info("Watch daemon started at %.2f FPS", self._settings.capped_fps())
@@ -72,7 +89,7 @@ class WatchDaemon:
         return True
 
     def _run(self) -> None:
-        interval = 1.0 / self._settings.capped_fps()
+        base_interval = 1.0 / self._settings.capped_fps()
         while not self._stop.is_set():
             t0 = time.perf_counter()
             try:
@@ -87,6 +104,7 @@ class WatchDaemon:
                         encoded.content_hash = prev.content_hash
                         encoded.width = prev.width
                         encoded.height = prev.height
+                        self._unchanged_streak += 1
                     else:
                         # First frame must encode
                         encoded, self._thumb = process_raw_frame(
@@ -95,10 +113,18 @@ class WatchDaemon:
                             previous_thumb=None,
                             skip_change_detect=True,
                         )
+                        self._unchanged_streak = 0
+                else:
+                    self._unchanged_streak = 0
                 self._store.set(encoded)
                 self._last_error = None
             except Exception as exc:
                 self._last_error = str(exc)
                 logger.warning("Watch tick failed: %s", exc)
             elapsed = time.perf_counter() - t0
-            self._stop.wait(max(0.0, interval - elapsed))
+            factor = idle_wait_factor(
+                self._unchanged_streak,
+                enabled=self._settings.idle_backoff,
+                max_factor=self._settings.idle_backoff_max,
+            )
+            self._stop.wait(max(0.0, base_interval * factor - elapsed))

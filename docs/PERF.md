@@ -9,9 +9,10 @@ Defaults are already conservative (1280×720 @ 5 FPS, JPEG 60, change-detect).
    Or call `get_latest_frame(since_hash=<last>)` — matching hash returns a tiny JSON stub (no image tokens).
 3. Use `get_region_frame` / `guided_region_focus` for UI work — crops beat full desktop for tokens and encode time.
 4. Keep `SCREEN_WATCH_MIN_CAPTURE_INTERVAL` ≥ 0.1s unless you measured a need (default 0.12).
-5. On Windows gaming PCs, try `SCREEN_WATCH_BACKEND=dxcam` after `pip install "screen-watch[windows]"`.
-6. Avoid concurrent one-shot grabs from multiple agent turns — the grab lock serializes; stampeding still wastes time.
-7. Recording is heavier than watch: leave `SCREEN_WATCH_RECORDING_ENABLED=false` unless reviewing a session.
+5. Leave `SCREEN_WATCH_IDLE_BACKOFF=true` (default) so a static desktop backs off toward 4× the base interval.
+6. On Windows gaming PCs, try `SCREEN_WATCH_BACKEND=dxcam` after `pip install "screen-watch[windows]"`.
+7. Avoid concurrent one-shot grabs from multiple agent turns — the grab lock serializes; stampeding still wastes time.
+8. Recording is heavier than watch: leave `SCREEN_WATCH_RECORDING_ENABLED=false` unless reviewing a session.
 
 ## Encode cost (local)
 

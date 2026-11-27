@@ -21,6 +21,8 @@ DEFAULT_BLUR = False
 DEFAULT_BLUR_BLOCK = 16
 DEFAULT_MIN_CAPTURE_INTERVAL = 0.12
 DEFAULT_HISTORY_SIZE = 64
+DEFAULT_IDLE_BACKOFF = True
+DEFAULT_IDLE_BACKOFF_MAX = 4.0
 
 
 def _env_float(name: str, default: float) -> float:
@@ -104,6 +106,8 @@ class Settings:
     focus_hotkey: str = "ctrl+shift+f"
     min_capture_interval_s: float = DEFAULT_MIN_CAPTURE_INTERVAL
     history_size: int = DEFAULT_HISTORY_SIZE
+    idle_backoff: bool = DEFAULT_IDLE_BACKOFF
+    idle_backoff_max: float = DEFAULT_IDLE_BACKOFF_MAX
 
     def capped_fps(self) -> float:
         return max(0.1, min(float(self.fps), DEFAULT_FPS_CAP))
@@ -173,6 +177,14 @@ def load_settings(**overrides: Any) -> Settings:
         history_size=_env_int(
             "SCREEN_WATCH_HISTORY_SIZE",
             int(fget("history_size", DEFAULT_HISTORY_SIZE)),
+        ),
+        idle_backoff=_env_bool(
+            "SCREEN_WATCH_IDLE_BACKOFF",
+            bool(fget("idle_backoff", DEFAULT_IDLE_BACKOFF)),
+        ),
+        idle_backoff_max=_env_float(
+            "SCREEN_WATCH_IDLE_BACKOFF_MAX",
+            float(fget("idle_backoff_max", DEFAULT_IDLE_BACKOFF_MAX)),
         ),
     )
     rec = os.environ.get("SCREEN_WATCH_RECORDINGS_DIR") or fget("recordings_dir", None)

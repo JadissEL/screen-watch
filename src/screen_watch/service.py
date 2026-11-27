@@ -245,6 +245,8 @@ class ScreenWatchService:
             "display": self.settings.display,
             "history_len": self.store.history_len(),
             "history_size": self.settings.history_size,
+            "idle_backoff": self.settings.idle_backoff,
+            "unchanged_streak": self.daemon.unchanged_streak,
             "recording_enabled": self.settings.recording_enabled,
             "last_error": self.daemon.last_error,
             "frame": None

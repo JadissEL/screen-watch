@@ -154,18 +154,28 @@ def build_server() -> Any:
         }
 
     @mcp.tool()
-    def get_frame_history(limit: int = 20, changed_only: bool = False) -> dict[str, Any]:
+    def get_frame_history(
+        limit: int = 20,
+        changed_only: bool = False,
+        min_change_score: float = 0.0,
+    ) -> dict[str, Any]:
         """
         Return newest-first frame metadata from the watch ring buffer (no image bytes).
 
         Useful to see when the desktop last changed without paying image tokens.
+        min_change_score: keep entries whose change_score is at least this value.
         """
         svc = get_service()
-        entries = svc.store.history(limit=limit, changed_only=changed_only)
+        entries = svc.store.history(
+            limit=limit,
+            changed_only=changed_only,
+            min_change_score=min_change_score,
+        )
         return {
             "count": len(entries),
             "history_len": svc.store.history_len(),
             "changed_only": changed_only,
+            "min_change_score": min_change_score,
             "entries": entries,
         }
 

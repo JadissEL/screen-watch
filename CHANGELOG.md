@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 — 2026-11-27
+
+- Watch **idle backoff** (default on): slows capture while the desktop is unchanged
+- `get_frame_history(min_change_score=…)` filter; status exposes `unchanged_streak`
+- CI concurrency group to avoid cancelled matrix jobs stomping each other
+
 ## 0.2.0 — 2026-11-25
 
 - **Stable MCP surface** documented in `docs/STABLE_API.md`

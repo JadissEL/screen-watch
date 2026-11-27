@@ -95,12 +95,15 @@ class FrameStore:
         *,
         limit: int = 20,
         changed_only: bool = False,
+        min_change_score: float = 0.0,
     ) -> list[dict[str, Any]]:
         """Return newest-first metadata entries (no JPEG bytes)."""
         with self._lock:
             items = list(self._history)
         if changed_only:
             items = [m for m in items if not m.unchanged]
+        if min_change_score > 0:
+            items = [m for m in items if m.change_score >= min_change_score]
         items.reverse()  # newest first
         n = max(1, min(int(limit), 200))
         return [m.as_dict() for m in items[:n]]
