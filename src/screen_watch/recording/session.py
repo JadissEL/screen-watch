@@ -8,6 +8,7 @@ import shutil
 import threading
 import time
 import uuid
+import zipfile
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -188,6 +189,71 @@ class RecordingManager:
             return {"ok": False, "error": f"No session {sid}"}
         shutil.rmtree(path)
         return {"ok": True, "deleted": sid}
+
+    def export_session(
+        self,
+        session_id: str,
+        *,
+        dest: str | Path | None = None,
+        keyframes_only: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Zip a finished session for local share/archive (never uploads).
+
+        Default dest: ``<recordings_dir>/<id>.zip``.
+        """
+        sid = Path(session_id).name
+        if not sid or sid in {".", ".."}:
+            return {"ok": False, "error": "Invalid session id"}
+        with self._lock:
+            if self._active is not None and self._active.id == sid:
+                return {"ok": False, "error": "Stop the active recording before exporting"}
+        sess = (self._root / sid).resolve()
+        try:
+            sess.relative_to(self._root.resolve())
+        except ValueError:
+            return {"ok": False, "error": "Invalid session path"}
+        if not sess.is_dir():
+            return {"ok": False, "error": f"No session {sid}"}
+
+        out = Path(dest) if dest else (self._root / f"{sid}.zip")
+        out = out.resolve()
+        # Keep zip under recordings root unless caller passed an absolute dest outside
+        if dest is None:
+            try:
+                out.relative_to(self._root.resolve())
+            except ValueError:
+                return {"ok": False, "error": "Invalid export path"}
+        out.parent.mkdir(parents=True, exist_ok=True)
+
+        keyframe_files: set[str] = set()
+        if keyframes_only:
+            tl = self.get_timeline(sid)
+            for fr in tl.get("frames", []):
+                if not fr.get("unchanged") and fr.get("file"):
+                    keyframe_files.add(str(fr["file"]).replace("\\", "/"))
+
+        count = 0
+        with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for path in sess.rglob("*"):
+                if not path.is_file():
+                    continue
+                rel = path.relative_to(sess).as_posix()
+                if keyframes_only:
+                    if rel in {"meta.json", "timeline.json"} or rel in keyframe_files:
+                        zf.write(path, arcname=f"{sid}/{rel}")
+                        count += 1
+                else:
+                    zf.write(path, arcname=f"{sid}/{rel}")
+                    count += 1
+        return {
+            "ok": True,
+            "session_id": sid,
+            "path": str(out),
+            "bytes": out.stat().st_size,
+            "files": count,
+            "keyframes_only": keyframes_only,
+        }
 
     def list_keyframes(self, session_id: str, *, limit: int = 50) -> dict[str, Any]:
         """Return changed-frame entries from a session timeline (paths relative to session dir)."""

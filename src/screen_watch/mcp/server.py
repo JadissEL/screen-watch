@@ -409,6 +409,23 @@ def build_server() -> Any:
         return _get_recorder().delete_session(session_id)
 
     @mcp.tool()
+    def export_recording(
+        session_id: str,
+        dest: str = "",
+        keyframes_only: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Zip a finished local recording for archive/share (never uploads).
+
+        Default path: ``<recordings_dir>/<session_id>.zip``.
+        """
+        return _get_recorder().export_session(
+            session_id,
+            dest=dest or None,
+            keyframes_only=keyframes_only,
+        )
+
+    @mcp.tool()
     def attach_recording_context(session_id: str) -> dict[str, Any]:
         """Return recording meta/timeline suitable for injecting into agent context."""
         data = _get_recorder().get_timeline(session_id)

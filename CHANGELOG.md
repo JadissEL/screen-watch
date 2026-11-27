@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.8 — 2026-11-27
+
+- MCP ``export_recording`` — zip a finished session locally (optional keyframes-only)
+
 ## 0.2.7 — 2026-11-27
 
 - MCP/service ``wait_for_change`` — block until hash/score changes (cap 120s, metadata only)

@@ -386,6 +386,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **Recording on FramePump** | RecordingManager + force_keyframe; unified continuous seam | **Done (0.2.5)** |
 | **Shared store recording** | Record taps watch FrameStore when daemon running | **Done (0.2.6)** |
 | **wait_for_change** | Agent-friendly block until screen hash/score changes | **Done (0.2.7)** |
+| **export_recording** | Zip finished session locally (keyframes-only option) | **Done (0.2.8)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

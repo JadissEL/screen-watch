@@ -21,3 +21,4 @@ dist-once.jpg
 .env.*
 !.env.example
 *.log
+.cursor_memory/
