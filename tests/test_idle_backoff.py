@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from screen_watch.daemon.watcher import idle_wait_factor
+from screen_watch.backoff import idle_wait_factor
 
 
 def test_idle_wait_disabled() -> None:

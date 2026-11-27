@@ -17,9 +17,9 @@ from screen_watch.advisor.profiler import (
     profile_machine,
     recommend_settings,
 )
+from screen_watch.backoff import idle_wait_factor
 from screen_watch.capture.factory import create_backend
 from screen_watch.config import Settings
-from screen_watch.daemon.watcher import idle_wait_factor
 from screen_watch.pipeline.process import process_raw_frame
 
 logger = logging.getLogger(__name__)

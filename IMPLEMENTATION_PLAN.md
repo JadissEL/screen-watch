@@ -382,6 +382,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **Idle backoff** | Adaptive watch interval when unchanged; history score filter | **Done (0.2.1)** |
 | **Recording hygiene + PyPI docs** | Delete/keyframes tools; record idle backoff; PYPI.md; observation prompt | **Done (0.2.2)** |
 | **FramePump + keyframe load** | Continuous grab helper; `get_recording_keyframe`; stream roadmap doc | **Done (0.2.3)** |
+| **Daemon on FramePump** | WatchDaemon consumes FramePump; shared backoff module | **Done (0.2.4)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

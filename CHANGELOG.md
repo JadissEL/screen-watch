@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4 — 2026-11-27
+
+- WatchDaemon now runs on ``FramePump`` (single continuous capture path)
+- Shared ``screen_watch.backoff.idle_wait_factor`` (no import cycle)
+
 ## 0.2.3 — 2026-11-27
 
 - `FramePump` continuous grab seam (`capture/loop.py`) + CONTINUOUS_CAPTURE.md roadmap

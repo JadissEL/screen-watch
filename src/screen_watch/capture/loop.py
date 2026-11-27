@@ -8,7 +8,7 @@ import time
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
-from screen_watch.daemon.watcher import idle_wait_factor
+from screen_watch.backoff import idle_wait_factor
 from screen_watch.pipeline.frame_store import EncodedFrame
 from screen_watch.pipeline.process import process_raw_frame
 

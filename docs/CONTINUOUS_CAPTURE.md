@@ -7,7 +7,8 @@ Today every backend is **snapshot-based** (`grab()` / portal / `screencapture`).
 `screen_watch.capture.loop.FramePump` is the continuous API surface:
 
 - yields processed `EncodedFrame`s at capped FPS
-- applies the same idle backoff as the watch daemon
+- applies shared idle backoff (`screen_watch.backoff`)
+- **WatchDaemon** consumes FramePump into `FrameStore` (from v0.2.4)
 - backends can later replace the inner `grab()` with a native stream reader without changing MCP tools
 
 ## Planned native streams (not shipped)
