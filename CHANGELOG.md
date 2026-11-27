@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.9 — 2026-11-27
+
+- CLI ``screen-watch wait`` and ``screen-watch export``
+
 ## 0.2.8 — 2026-11-27
 
 - MCP ``export_recording`` — zip a finished session locally (optional keyframes-only)

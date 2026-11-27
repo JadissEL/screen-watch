@@ -63,6 +63,24 @@ def main(argv: list[str] | None = None) -> int:
         default=0.0,
         help="Stop after N seconds (0 = until Ctrl+C)",
     )
+    wait = sub.add_parser("wait", help="Block until the screen changes (JSON on stdout)")
+    wait.add_argument("--since-hash", default="", help="Baseline content hash (default: current)")
+    wait.add_argument("--min-score", type=float, default=0.0, help="Minimum change_score")
+    wait.add_argument("--timeout", type=float, default=30.0, help="Seconds (max 120)")
+    wait.add_argument("--poll", type=float, default=0.25, help="Poll interval seconds")
+    wait.add_argument(
+        "--start-watch",
+        action="store_true",
+        help="Start the watch daemon for the wait (stops afterward)",
+    )
+    export = sub.add_parser("export", help="Zip a finished recording session locally")
+    export.add_argument("session_id", help="Recording session id")
+    export.add_argument("-o", "--output", type=Path, default=None, help="Zip path")
+    export.add_argument(
+        "--keyframes-only",
+        action="store_true",
+        help="Include meta/timeline + changed JPEGs only",
+    )
 
     args = parser.parse_args(argv)
     settings = load_settings()
@@ -148,6 +166,39 @@ def main(argv: list[str] | None = None) -> int:
         out = get_service().bench(iterations=args.iterations, display_id=args.display)
         print(json.dumps(out, indent=2))
         return 0
+
+    if args.cmd == "wait":
+        reset_service()
+        svc = get_service()
+        started_watch = False
+        if args.start_watch and not svc.daemon.running:
+            svc.daemon.start()
+            started_watch = True
+        try:
+            out = svc.wait_for_change(
+                since_hash=args.since_hash,
+                min_change_score=args.min_score,
+                timeout_s=args.timeout,
+                poll_s=args.poll,
+            )
+            print(json.dumps(out, indent=2))
+            return 0 if out.get("changed") else 2
+        finally:
+            if started_watch:
+                svc.daemon.stop()
+                reset_service()
+
+    if args.cmd == "export":
+        from screen_watch.recording.session import RecordingManager
+
+        mgr = RecordingManager(settings)
+        out = mgr.export_session(
+            args.session_id,
+            dest=args.output,
+            keyframes_only=args.keyframes_only,
+        )
+        print(json.dumps(out, indent=2))
+        return 0 if out.get("ok") else 1
 
     if args.cmd == "watch":
         import time

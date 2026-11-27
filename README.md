@@ -46,6 +46,12 @@ python -m screen_watch bench -n 5
 # Foreground watch (logs content-hash changes)
 python -m screen_watch watch --seconds 5
 
+# Block until the screen changes (exit 2 on timeout)
+python -m screen_watch wait --timeout 30 --start-watch
+
+# Zip a finished recording session
+python -m screen_watch export <session_id> --keyframes-only
+
 # MCP stdio server (default)
 python -m screen_watch serve
 ```
