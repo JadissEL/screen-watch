@@ -16,7 +16,7 @@ from screen_watch.focus.region import BBox, crop_rgb
 from screen_watch.pipeline.blur import pixelate_rgb
 from screen_watch.pipeline.change_detect import change_bbox
 from screen_watch.pipeline.downsample import downsample_rgb
-from screen_watch.pipeline.encode import encode_jpeg
+from screen_watch.pipeline.encode import encode_image, normalize_format
 from screen_watch.pipeline.frame_store import EncodedFrame, FrameStore
 from screen_watch.pipeline.process import process_raw_frame
 from screen_watch.rate_limit import MinIntervalGate
@@ -181,11 +181,18 @@ class ScreenWatchService:
             crop = img_b.crop(
                 (bbox["x"], bbox["y"], bbox["x"] + bbox["width"], bbox["y"] + bbox["height"])
             )
-            buf = BytesIO()
-            crop.save(buf, format="JPEG", quality=self.settings.jpeg_quality)
-            out["region_jpeg"] = buf.getvalue()
+            fmt = normalize_format(self.settings.image_format)
+            rgb = crop.convert("RGB").tobytes()
+            out["region_jpeg"] = encode_image(
+                rgb,
+                crop.width,
+                crop.height,
+                quality=self.settings.jpeg_quality,
+                image_format=fmt,
+            )
             out["region_width"] = crop.width
             out["region_height"] = crop.height
+            out["image_format"] = fmt
         return out
 
     def reset_change_region(self) -> dict[str, Any]:
@@ -243,7 +250,14 @@ class ScreenWatchService:
             # Fit crop into settings box
             tmp = RawFrame(cw, ch, cropped_rgb, raw.timestamp_ms, raw.display_id, raw.backend)
             crop_rgb_ds, dw, dh = downsample_rgb(tmp, self.settings.max_width, self.settings.max_height)
-            crop_jpeg = encode_jpeg(crop_rgb_ds, dw, dh, self.settings.jpeg_quality)
+            fmt = normalize_format(self.settings.image_format)
+            crop_jpeg = encode_image(
+                crop_rgb_ds,
+                dw,
+                dh,
+                quality=self.settings.jpeg_quality,
+                image_format=fmt,
+            )
 
             return {
                 "gesture": {
@@ -256,6 +270,7 @@ class ScreenWatchService:
                 "region_jpeg": crop_jpeg,
                 "region_width": dw,
                 "region_height": dh,
+                "image_format": fmt,
                 "note": (
                     "Agent should snap the loose gesture to the nearest UI element "
                     "(button/card/window). screen-watch does not run a11y snap."
@@ -384,6 +399,7 @@ class ScreenWatchService:
             "max_width": self.settings.max_width,
             "max_height": self.settings.max_height,
             "jpeg_quality": self.settings.jpeg_quality,
+            "image_format": self.settings.image_format,
             "blur_default": self.settings.blur,
             "min_capture_interval_s": self.settings.min_capture_interval_s,
             "display": self.settings.display,
@@ -403,6 +419,7 @@ class ScreenWatchService:
                 "unchanged": frame.unchanged,
                 "blur": frame.blur,
                 "change_score": frame.change_score,
+                "image_format": frame.image_format,
                 "age_ms": self.store.age_ms(),
             },
         }

@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 BackendName = Literal["auto", "mss", "dxcam", "sck", "pipewire"]
+ImageFormatName = Literal["jpeg", "webp"]
 
 # Locked defaults (IMPLEMENTATION_PLAN.md §11)
 DEFAULT_MAX_WIDTH = 1280
@@ -94,6 +95,7 @@ class Settings:
     max_height: int = DEFAULT_MAX_HEIGHT
     fps: float = DEFAULT_FPS
     jpeg_quality: int = DEFAULT_JPEG_QUALITY
+    image_format: ImageFormatName = "jpeg"
     change_threshold: float = DEFAULT_CHANGE_THRESHOLD
     backend: BackendName = "auto"
     display: int | None = None  # 1-based mss monitor index; None = primary
@@ -120,6 +122,7 @@ class Settings:
             "fps": self.fps,
             "capped_fps": self.capped_fps(),
             "jpeg_quality": self.jpeg_quality,
+            "image_format": self.image_format,
             "change_threshold": self.change_threshold,
             "backend": self.backend,
             "display": self.display,
@@ -138,6 +141,13 @@ class Settings:
             "config_dir": str(config_dir()),
             "data_dir": str(data_dir()),
         }
+
+
+def _parse_image_format(value: Any) -> ImageFormatName:
+    raw = str(value or "jpeg").strip().lower()
+    if raw in {"webp", "image/webp"}:
+        return "webp"
+    return "jpeg"
 
 
 def load_settings(**overrides: Any) -> Settings:
@@ -171,6 +181,9 @@ def load_settings(**overrides: Any) -> Settings:
         fps=_env_float("SCREEN_WATCH_FPS", float(fget("fps", DEFAULT_FPS))),
         jpeg_quality=_env_int(
             "SCREEN_WATCH_JPEG_QUALITY", int(fget("jpeg_quality", DEFAULT_JPEG_QUALITY))
+        ),
+        image_format=_parse_image_format(
+            os.environ.get("SCREEN_WATCH_IMAGE_FORMAT") or fget("image_format", "jpeg")
         ),
         change_threshold=_env_float(
             "SCREEN_WATCH_CHANGE_THRESHOLD",

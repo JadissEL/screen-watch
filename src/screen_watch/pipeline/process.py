@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from screen_watch.pipeline.blur import pixelate_rgb
 from screen_watch.pipeline.change_detect import frames_changed
 from screen_watch.pipeline.downsample import downsample_rgb
-from screen_watch.pipeline.encode import encode_jpeg
+from screen_watch.pipeline.encode import encode_image, normalize_format
 from screen_watch.pipeline.frame_store import EncodedFrame
 
 if TYPE_CHECKING:
@@ -48,6 +48,8 @@ def process_raw_frame(
             rgb, w, h, previous_thumb, settings.change_threshold
         )
 
+    image_format = normalize_format(getattr(settings, "image_format", "jpeg"))
+
     if not changed:
         digest = hashlib.sha256(rgb).hexdigest()[:16]
         return (
@@ -62,15 +64,22 @@ def process_raw_frame(
                 display_id=raw.display_id,
                 blur=apply_blur,
                 change_score=change_score,
+                image_format=image_format,
             ),
             thumb,
         )
 
-    jpeg = encode_jpeg(rgb, w, h, settings.jpeg_quality)
-    digest = hashlib.sha256(jpeg).hexdigest()[:16]
+    payload = encode_image(
+        rgb,
+        w,
+        h,
+        quality=settings.jpeg_quality,
+        image_format=image_format,
+    )
+    digest = hashlib.sha256(payload).hexdigest()[:16]
     return (
         EncodedFrame(
-            jpeg=jpeg,
+            jpeg=payload,
             width=w,
             height=h,
             timestamp_ms=raw.timestamp_ms,
@@ -80,6 +89,7 @@ def process_raw_frame(
             display_id=raw.display_id,
             blur=apply_blur,
             change_score=change_score,
+            image_format=image_format,
         ),
         thumb,
     )

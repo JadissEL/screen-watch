@@ -11,7 +11,7 @@ from typing import Any
 
 @dataclass(slots=True)
 class EncodedFrame:
-    """JPEG frame ready for MCP / disk."""
+    """Encoded frame ready for MCP / disk (``jpeg`` holds image bytes for any format)."""
 
     jpeg: bytes
     width: int
@@ -23,6 +23,11 @@ class EncodedFrame:
     display_id: int
     blur: bool = False
     change_score: float = 0.0
+    image_format: str = "jpeg"
+
+    @property
+    def mime(self) -> str:
+        return "image/webp" if self.image_format == "webp" else "image/jpeg"
 
 
 @dataclass(slots=True, frozen=True)
@@ -39,6 +44,7 @@ class FrameMeta:
     blur: bool
     jpeg_bytes: int
     change_score: float = 0.0
+    image_format: str = "jpeg"
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -52,6 +58,7 @@ class FrameMeta:
             "blur": self.blur,
             "jpeg_bytes": self.jpeg_bytes,
             "change_score": self.change_score,
+            "image_format": self.image_format,
         }
 
 
@@ -75,6 +82,7 @@ class FrameStore:
             blur=frame.blur,
             jpeg_bytes=len(frame.jpeg),
             change_score=frame.change_score,
+            image_format=frame.image_format,
         )
         with self._lock:
             self._frame = frame

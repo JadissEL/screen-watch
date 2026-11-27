@@ -39,6 +39,7 @@ def run_doctor() -> dict[str, Any]:
             "max_height": settings.max_height,
             "fps": settings.capped_fps(),
             "jpeg_quality": settings.jpeg_quality,
+            "image_format": settings.image_format,
             "backend": settings.backend,
             "focus_hotkey": settings.focus_hotkey,
             "min_capture_interval_s": settings.min_capture_interval_s,

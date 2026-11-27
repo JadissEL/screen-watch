@@ -393,6 +393,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **Recording meta polish** | get_recording_meta; list fields; reset_change_region; CLI recordings | **Done (0.2.12)** |
 | **Recordings resource** | ``screen://recordings`` + doctor FramePump note | **Done (0.2.13)** |
 | **get_config** | Effective settings for agents/CLI | **Done (0.2.14)** |
+| **Optional WebP** | ``image_format`` jpeg\|webp end-to-end | **Done (0.2.15)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.15 — 2026-11-27
+
+- Optional ``image_format=webp`` (env ``SCREEN_WATCH_IMAGE_FORMAT`` / config.toml)
+- Encoded frames/recordings/MCP images honor JPEG or WebP
+
 ## 0.2.14 — 2026-11-27
 
 - MCP ``get_config`` + CLI ``screen-watch config`` (effective settings)

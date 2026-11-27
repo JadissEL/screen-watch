@@ -19,7 +19,8 @@ Example: [examples/config.toml](../examples/config.toml).
 | `SCREEN_WATCH_MAX_WIDTH` | 1280 | Capture box width |
 | `SCREEN_WATCH_MAX_HEIGHT` | 720 | Capture box height |
 | `SCREEN_WATCH_FPS` | 5 | Watch/record target FPS (capped at 5) |
-| `SCREEN_WATCH_JPEG_QUALITY` | 60 | JPEG quality |
+| `SCREEN_WATCH_JPEG_QUALITY` | 60 | Encode quality (JPEG or WebP) |
+| `SCREEN_WATCH_IMAGE_FORMAT` | jpeg | `jpeg` \| `webp` |
 | `SCREEN_WATCH_CHANGE_THRESHOLD` | 2.0 | Change-detect sensitivity |
 | `SCREEN_WATCH_BACKEND` | auto | `auto` \| `mss` \| `dxcam` \| `sck` \| `pipewire` |
 | `SCREEN_WATCH_DISPLAY` | (primary) | 1-based monitor index |

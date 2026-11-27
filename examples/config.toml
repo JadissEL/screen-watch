@@ -9,6 +9,7 @@ max_width = 1280
 max_height = 720
 fps = 5.0
 jpeg_quality = 60
+# image_format = "jpeg"  # or "webp"
 backend = "auto"
 # display = 1
 blur = false

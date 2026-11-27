@@ -30,8 +30,10 @@ def _get_recorder() -> RecordingManager:
     return _recorder
 
 
-def _image_result(jpeg: bytes, meta: dict[str, Any]) -> Any:
+def _image_result(jpeg: bytes, meta: dict[str, Any], *, image_format: str = "jpeg") -> Any:
     """Return MCP Image when possible, else JSON with base64 (fallback)."""
+    fmt = "webp" if str(image_format).lower() == "webp" else "jpeg"
+    mime = "image/webp" if fmt == "webp" else "image/jpeg"
     try:
         try:
             from mcp.server.fastmcp import Image
@@ -40,12 +42,13 @@ def _image_result(jpeg: bytes, meta: dict[str, Any]) -> Any:
 
         # Prefer returning Image; also include meta via side channel is hard —
         # FastMCP Image is the primary payload. Callers can use get_watch_status for meta.
-        return Image(data=jpeg, format="jpeg")
+        return Image(data=jpeg, format=fmt)
     except Exception:
         import base64
 
         return {
-            "mime": "image/jpeg",
+            "mime": mime,
+            "image_format": fmt,
             "base64": base64.b64encode(jpeg).decode("ascii"),
             **meta,
         }
@@ -150,6 +153,7 @@ def build_server() -> Any:
             "blur": frame.blur,
             "backend": frame.backend,
             "change_score": frame.change_score,
+            "image_format": frame.image_format,
         }
         if since_hash and since_hash == frame.content_hash:
             logger.info("get_latest_frame unchanged hash=%s", since_hash[:12])
@@ -160,7 +164,7 @@ def build_server() -> Any:
                 "age_ms": svc.store.age_ms(),
             }
         logger.info("get_latest_frame %sx%s blur=%s", frame.width, frame.height, frame.blur)
-        return _image_result(frame.jpeg, meta)
+        return _image_result(frame.jpeg, meta, image_format=frame.image_format)
 
     @mcp.tool()
     def get_latest_frame_info(blur: bool = False, since_hash: str = "") -> dict[str, Any]:
@@ -185,6 +189,7 @@ def build_server() -> Any:
             "blur": frame.blur,
             "backend": frame.backend,
             "change_score": frame.change_score,
+            "image_format": frame.image_format,
             "bytes": len(frame.jpeg),
             "age_ms": svc.store.age_ms(),
         }
@@ -237,10 +242,11 @@ def build_server() -> Any:
             "blur": frame.blur,
             "backend": frame.backend,
             "display_id": frame.display_id,
+            "image_format": frame.image_format,
         }
         if since_hash and since_hash == frame.content_hash:
             return {"unchanged": True, "skipped_image": True, **meta}
-        return _image_result(frame.jpeg, meta)
+        return _image_result(frame.jpeg, meta, image_format=frame.image_format)
 
     @mcp.tool()
     def bench_capture(iterations: int = 5, display_id: int = 0) -> dict[str, Any]:
@@ -286,7 +292,8 @@ def build_server() -> Any:
         )
         jpeg = result.pop("region_jpeg", None)
         if jpeg and include_crop:
-            return _image_result(jpeg, result)
+            fmt = result.get("image_format") or get_service().settings.image_format
+            return _image_result(jpeg, result, image_format=str(fmt))
         return result
 
     @mcp.tool()
@@ -448,7 +455,8 @@ def build_server() -> Any:
         if not result.get("ok"):
             return result
         jpeg = result.pop("jpeg")
-        return _image_result(jpeg, result)
+        fmt = result.get("image_format") or "jpeg"
+        return _image_result(jpeg, result, image_format=str(fmt))
 
     @mcp.tool()
     def delete_recording(session_id: str) -> dict[str, Any]:
@@ -511,9 +519,16 @@ def build_server() -> Any:
 
         svc = get_service()
         result = svc.capture_region(BBox(x, y, width, height), blur=blur, also_full_frame=False)
+        fmt = result.get("image_format") or svc.settings.image_format
         return _image_result(
             result["region_jpeg"],
-            {"gesture": result["gesture"], "width": result["region_width"], "height": result["region_height"]},
+            {
+                "gesture": result["gesture"],
+                "width": result["region_width"],
+                "height": result["region_height"],
+                "image_format": fmt,
+            },
+            image_format=str(fmt),
         )
 
     @mcp.tool()

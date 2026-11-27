@@ -21,6 +21,7 @@ from screen_watch.advisor.profiler import (
 from screen_watch.capture.factory import create_backend
 from screen_watch.capture.loop import FramePump
 from screen_watch.config import Settings
+from screen_watch.pipeline.encode import extension_for_format, normalize_format, sniff_format
 from screen_watch.pipeline.frame_store import FrameStore
 
 logger = logging.getLogger(__name__)
@@ -380,13 +381,15 @@ class RecordingManager:
         if not target.is_file():
             return {"ok": False, "error": f"Missing frame file {file}"}
         data = target.read_bytes()
-        if data[:2] != b"\xff\xd8":
-            return {"ok": False, "error": "Not a JPEG frame"}
+        fmt = sniff_format(data)
+        if fmt is None:
+            return {"ok": False, "error": "Not a JPEG/WebP frame"}
         return {
             "ok": True,
             "session_id": sid,
             "file": str(rel).replace("\\", "/"),
             "bytes": len(data),
+            "image_format": fmt,
             "jpeg": data,
         }
 
@@ -453,7 +456,9 @@ class RecordingManager:
             return
         sess_dir = Path(session.dir)
         idx = session.frame_count
-        filename = f"frame_{idx:06d}.jpg"
+        fmt = normalize_format(getattr(encoded, "image_format", self._settings.image_format))
+        ext = extension_for_format(fmt)
+        filename = f"frame_{idx:06d}.{ext}"
         (sess_dir / "frames").mkdir(exist_ok=True)
         (sess_dir / "frames" / filename).write_bytes(encoded.jpeg)
         t_ms = encoded.timestamp_ms - session.started_ms
@@ -465,6 +470,7 @@ class RecordingManager:
                 "width": encoded.width,
                 "height": encoded.height,
                 "hash": encoded.content_hash,
+                "image_format": fmt,
             }
         )
         session.frame_count += 1
