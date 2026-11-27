@@ -132,6 +132,11 @@ def build_server() -> Any:
         return get_service().settings.as_public_dict()
 
     @mcp.tool()
+    def set_image_format(image_format: str = "jpeg") -> dict[str, Any]:
+        """Switch encode format to ``jpeg`` or ``webp`` (applies to subsequent frames)."""
+        return get_service().set_image_format(image_format)
+
+    @mcp.tool()
     def get_latest_frame(blur: bool = False, since_hash: str = "") -> Any:
         """
         Capture or return the latest desktop frame as JPEG (observation only).

@@ -10,7 +10,13 @@ import tempfile
 import time
 from pathlib import Path
 
-from screen_watch.capture.base import CaptureError, DisplayInfo, RawFrame
+from screen_watch.capture.base import (
+    CaptureError,
+    DisplayInfo,
+    FrameStream,
+    RawFrame,
+    SnapshotFrameStream,
+)
 from screen_watch.capture.mss_backend import MssBackend
 
 logger = logging.getLogger(__name__)
@@ -100,6 +106,10 @@ class ScreenCaptureKitBackend:
 
     def grab_virtual(self) -> RawFrame:
         return self._grab()
+
+    def open_stream(self, display_id: int | None = None) -> FrameStream:
+        """Snapshot stream until a true ScreenCaptureKit SCStream reader ships."""
+        return SnapshotFrameStream(self, display_id)
 
     def _grab(self) -> RawFrame:
         if self._mode == "quartz":

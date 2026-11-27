@@ -24,7 +24,7 @@ FramePump prefers that over `SnapshotFrameStream`. MCP tools stay unchanged.
 | Platform | Target | Status |
 |----------|--------|--------|
 | Windows | DXCam / Desktop Duplication streaming | **`DxcamFrameStream`** via `start()` + `get_latest_frame()` (v0.2.17); snapshot fallback |
-| macOS | ScreenCaptureKit stream | `screencapture` / Quartz stills; stream protocol ready |
-| Linux | PipeWire screencast portal | grim / portal Screenshot stills; stream protocol ready |
+| macOS | ScreenCaptureKit stream | `open_stream` → SnapshotFrameStream (Quartz/screencapture); SCStream TBD |
+| Linux | PipeWire screencast portal | `open_stream` → SnapshotFrameStream (grim/portal); PW reader TBD |
 
 Observation-only constraint remains: no input injection.

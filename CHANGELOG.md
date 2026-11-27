@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.18 — 2026-11-27
+
+- MCP/CLI ``set_image_format`` / ``screen-watch format``
+- Linux/macOS backends expose ``open_stream`` (snapshot until native readers ship)
+
 ## 0.2.17 — 2026-11-27
 
 - DXCam ``open_stream`` → ``DxcamFrameStream`` (``start`` / ``get_latest_frame``)

@@ -23,6 +23,7 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 |------|-------|
 | `get_version` | Package version + repo |
 | `get_config` | Effective settings JSON (local paths; no secrets) |
+| `set_image_format` | Switch ``jpeg`` / ``webp`` for subsequent encodes |
 | `get_latest_frame` | JPEG; `blur`, `since_hash` |
 | `get_latest_frame_info` | Metadata only; `since_hash` |
 | `get_frame_history` | Ring-buffer metadata (no images); `changed_only`, `min_change_score` |

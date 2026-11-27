@@ -5,6 +5,7 @@ from __future__ import annotations
 TOOL_NAMES: tuple[str, ...] = (
     "get_version",
     "get_config",
+    "set_image_format",
     "get_latest_frame",
     "get_latest_frame_info",
     "get_frame_history",

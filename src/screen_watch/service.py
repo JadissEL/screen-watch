@@ -200,6 +200,17 @@ class ScreenWatchService:
         self._prev_change_jpeg = None
         return {"ok": True, "cleared": True}
 
+    def set_image_format(self, image_format: str) -> dict[str, Any]:
+        """Switch encode format (``jpeg`` | ``webp``). Takes effect on the next encode."""
+        fmt = normalize_format(image_format)
+        self.settings.image_format = fmt  # type: ignore[assignment]
+        return {
+            "ok": True,
+            "image_format": fmt,
+            "watch_running": self.daemon.running,
+            "note": "Applies to subsequent frames; no daemon restart required",
+        }
+
     def latest_for_agent(self, *, blur: bool | None = None) -> EncodedFrame:
         """
         Prefer daemon store; otherwise one-shot.

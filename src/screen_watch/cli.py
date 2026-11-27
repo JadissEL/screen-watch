@@ -33,6 +33,8 @@ def main(argv: list[str] | None = None) -> int:
     once.add_argument("--display", type=int, default=None, help="1-based monitor id")
     sub.add_parser("status", help="Print backend / config status")
     sub.add_parser("config", help="Print effective settings JSON (paths, no secrets)")
+    fmt = sub.add_parser("format", help="Set image encode format (jpeg|webp) for this process")
+    fmt.add_argument("image_format", choices=["jpeg", "webp"], help="Encode format")
     advise = sub.add_parser("advise", help="PC capacity + LLM cost summary")
     advise.add_argument("--model", help="Preferred LLM id (persisted)")
     sub.add_parser("models", help="List built-in vision LLM catalog")
@@ -120,6 +122,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "config":
         print(json.dumps(settings.as_public_dict(), indent=2))
         return 0
+
+    if args.cmd == "format":
+        reset_service()
+        out = get_service().set_image_format(args.image_format)
+        print(json.dumps(out, indent=2))
+        return 0 if out.get("ok") else 1
 
     if args.cmd == "advise":
         state = load_advisor_state()

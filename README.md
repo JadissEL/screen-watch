@@ -43,6 +43,9 @@ python -m screen_watch doctor
 # Effective settings
 python -m screen_watch config
 
+# Switch encode format for this process
+python -m screen_watch format webp
+
 # Grab+encode latency
 python -m screen_watch bench -n 5
 

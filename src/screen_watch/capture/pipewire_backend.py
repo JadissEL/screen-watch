@@ -11,7 +11,13 @@ import tempfile
 import time
 from pathlib import Path
 
-from screen_watch.capture.base import CaptureError, DisplayInfo, RawFrame
+from screen_watch.capture.base import (
+    CaptureError,
+    DisplayInfo,
+    FrameStream,
+    RawFrame,
+    SnapshotFrameStream,
+)
 from screen_watch.capture.mss_backend import MssBackend
 from screen_watch.capture.portal_uri import extract_file_uri, file_uri_to_path
 
@@ -168,6 +174,10 @@ class PipewireBackend:
         if self._mode == "grim":
             return self._grab_grim()
         return self._grab_portal()
+
+    def open_stream(self, display_id: int | None = None) -> FrameStream:
+        """Snapshot stream until a true PipeWire screencast reader ships."""
+        return SnapshotFrameStream(self, display_id)
 
     def _grab_grim(self) -> RawFrame:
         assert self._grim
