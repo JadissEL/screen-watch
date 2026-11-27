@@ -24,6 +24,8 @@ TOOL_NAMES: tuple[str, ...] = (
     "stop_recording",
     "list_recordings",
     "get_recording_timeline",
+    "list_recording_keyframes",
+    "delete_recording",
     "attach_recording_context",
     "get_region_frame",
     "guided_region_focus",

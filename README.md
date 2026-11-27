@@ -93,7 +93,7 @@ See [docs/CONFIG.md](docs/CONFIG.md).
 | `set_capture_display` | Default monitor for watch / latest |
 | `list_displays` | Monitors |
 | `get_advisor_summary` / `set_preferred_llm` / `run_capacity_profile` / `list_llm_models` | Local advisor |
-| `start_recording` / `stop_recording` / `list_recordings` / `get_recording_timeline` / `attach_recording_context` | Opt-in local sessions |
+| `start_recording` / `stop_recording` / `list_recordings` / `get_recording_timeline` / `list_recording_keyframes` / `delete_recording` / `attach_recording_context` | Opt-in local sessions |
 | `guided_region_focus` / `get_region_frame` | Loose drag overlay or bbox crop; agent snaps to UI |
 
 Interactive focus from a terminal:
@@ -117,7 +117,7 @@ Hash-poll demo: [examples/poll_since_hash.py](examples/poll_since_hash.py).
 2. **Pipeline** — downsample → optional blur → change-detect → JPEG.
 3. **MCP** — identical tool surface on every OS.
 
-MCP reference: [docs/MCP.md](docs/MCP.md) · Stable API: [docs/STABLE_API.md](docs/STABLE_API.md). Performance: [docs/PERF.md](docs/PERF.md). Privacy: [docs/PRIVACY.md](docs/PRIVACY.md). Security: [docs/SECURITY.md](docs/SECURITY.md). Token costs: [docs/TOKEN_COSTS.md](docs/TOKEN_COSTS.md). Plan: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+MCP reference: [docs/MCP.md](docs/MCP.md) · Stable API: [docs/STABLE_API.md](docs/STABLE_API.md). PyPI: [docs/PYPI.md](docs/PYPI.md). Performance: [docs/PERF.md](docs/PERF.md). Privacy: [docs/PRIVACY.md](docs/PRIVACY.md). Security: [docs/SECURITY.md](docs/SECURITY.md). Token costs: [docs/TOKEN_COSTS.md](docs/TOKEN_COSTS.md). Plan: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
 
 ## License
 

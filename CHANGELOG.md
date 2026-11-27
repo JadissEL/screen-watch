@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2 — 2026-11-27
+
+- Recording: `delete_recording`, `list_recording_keyframes`; idle backoff while recording
+- MCP prompt `observation_workflow`; docs/PYPI.md for future publish
+
 ## 0.2.1 — 2026-11-27
 
 - Watch **idle backoff** (default on): slows capture while the desktop is unchanged

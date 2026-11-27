@@ -83,6 +83,26 @@ def build_server() -> Any:
     except Exception:
         logger.debug("MCP resources not registered on this SDK", exc_info=True)
 
+    try:
+
+        @mcp.prompt()
+        def observation_workflow() -> str:
+            """Recommended observation-only polling pattern for agents."""
+            from pathlib import Path
+
+            path = Path(__file__).resolve().parents[3] / "examples" / "agent-usage.md"
+            if path.is_file():
+                return path.read_text(encoding="utf-8")
+            return (
+                "1. doctor / get_version\n"
+                "2. start_watch\n"
+                "3. poll get_latest_frame_info(since_hash=…)\n"
+                "4. get_latest_frame only when hash changes\n"
+            )
+
+    except Exception:
+        logger.debug("MCP prompts not registered on this SDK", exc_info=True)
+
     @mcp.tool()
     def get_version() -> dict[str, Any]:
         """Return package version and repo URL."""
@@ -341,6 +361,16 @@ def build_server() -> Any:
     def get_recording_timeline(session_id: str) -> dict[str, Any]:
         """Return timeline + sync hooks for a recording (agent supplies its own STT)."""
         return _get_recorder().get_timeline(session_id)
+
+    @mcp.tool()
+    def list_recording_keyframes(session_id: str, limit: int = 50) -> dict[str, Any]:
+        """List changed JPEG paths for a recording session (no image bytes)."""
+        return _get_recorder().list_keyframes(session_id, limit=limit)
+
+    @mcp.tool()
+    def delete_recording(session_id: str) -> dict[str, Any]:
+        """Delete a finished local recording session directory."""
+        return _get_recorder().delete_session(session_id)
 
     @mcp.tool()
     def attach_recording_context(session_id: str) -> dict[str, Any]:

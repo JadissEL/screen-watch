@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import threading
 import time
 import uuid
@@ -18,6 +19,7 @@ from screen_watch.advisor.profiler import (
 )
 from screen_watch.capture.factory import create_backend
 from screen_watch.config import Settings
+from screen_watch.daemon.watcher import idle_wait_factor
 from screen_watch.pipeline.process import process_raw_frame
 
 logger = logging.getLogger(__name__)
@@ -143,9 +145,43 @@ class RecordingManager:
             data["meta"] = json.loads(meta.read_text(encoding="utf-8"))
         return data
 
+    def delete_session(self, session_id: str) -> dict[str, Any]:
+        """Delete a finished session directory (path-traversal safe)."""
+        sid = Path(session_id).name
+        if not sid or sid in {".", ".."}:
+            return {"ok": False, "error": "Invalid session id"}
+        with self._lock:
+            if self._active is not None and self._active.id == sid:
+                return {"ok": False, "error": "Stop the active recording before deleting it"}
+        path = (self._root / sid).resolve()
+        try:
+            path.relative_to(self._root.resolve())
+        except ValueError:
+            return {"ok": False, "error": "Invalid session path"}
+        if not path.is_dir():
+            return {"ok": False, "error": f"No session {sid}"}
+        shutil.rmtree(path)
+        return {"ok": True, "deleted": sid}
+
+    def list_keyframes(self, session_id: str, *, limit: int = 50) -> dict[str, Any]:
+        """Return changed-frame entries from a session timeline (paths relative to session dir)."""
+        data = self.get_timeline(session_id)
+        if "error" in data:
+            return data
+        frames = [f for f in data.get("frames", []) if not f.get("unchanged") and f.get("file")]
+        n = max(1, min(int(limit), 500))
+        return {
+            "session_id": data.get("session_id", session_id),
+            "count": len(frames[:n]),
+            "total_keyframes": len(frames),
+            "dir": str(self._root / Path(session_id).name),
+            "keyframes": frames[:n],
+        }
+
     def _run(self) -> None:
         backend = create_backend(self._settings)
-        interval = 1.0 / max(1.0, min(self._settings.capped_fps(), 3.0))  # gentler while recording
+        base_interval = 1.0 / max(1.0, min(self._settings.capped_fps(), 3.0))  # gentler while recording
+        unchanged_streak = 0
         while not self._stop.is_set():
             t0 = time.perf_counter()
             try:
@@ -159,16 +195,23 @@ class RecordingManager:
                     self._active.timeline.append(
                         {"t_ms": round(t_ms, 1), "unchanged": True, "file": None}
                     )
+                    unchanged_streak += 1
                 else:
                     if encoded.unchanged or not encoded.jpeg:
                         encoded, self._thumb = process_raw_frame(
                             raw, self._settings, previous_thumb=None, skip_change_detect=True
                         )
                     self._append_frame(encoded)
+                    unchanged_streak = 0
             except Exception as exc:
                 logger.warning("Recording tick failed: %s", exc)
             elapsed = time.perf_counter() - t0
-            self._stop.wait(max(0.0, interval - elapsed))
+            factor = idle_wait_factor(
+                unchanged_streak,
+                enabled=self._settings.idle_backoff,
+                max_factor=self._settings.idle_backoff_max,
+            )
+            self._stop.wait(max(0.0, base_interval * factor - elapsed))
 
     def _append_frame(self, encoded: Any) -> None:
         session = self._active

@@ -380,6 +380,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **Frame history** | Metadata ring buffer; `get_frame_history`; CLI `watch` | **Done (0.1.13)** |
 | **0.2 stable surface** | STABLE_API.md; `change_score`; Actions v7 | **Done (0.2.0)** |
 | **Idle backoff** | Adaptive watch interval when unchanged; history score filter | **Done (0.2.1)** |
+| **Recording hygiene + PyPI docs** | Delete/keyframes tools; record idle backoff; PYPI.md; observation prompt | **Done (0.2.2)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 
