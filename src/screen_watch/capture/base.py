@@ -57,3 +57,65 @@ class CaptureBackend(Protocol):
     def grab_virtual(self) -> RawFrame:
         """Grab the full virtual desktop (all monitors). Defaults to primary if unsupported."""
         ...
+
+
+@runtime_checkable
+class FrameStream(Protocol):
+    """
+    Continuous frame source for FramePump.
+
+    Native SCK / PipeWire / DXCam streams implement this; snapshot backends use
+    ``SnapshotFrameStream`` (grab-per-tick) until a real stream ships.
+    """
+
+    @property
+    def name(self) -> str:
+        """Stream / backend identifier."""
+        ...
+
+    def read(self) -> RawFrame:
+        """Block until the next frame (or return the latest snapshot)."""
+        ...
+
+    def close(self) -> None:
+        """Release native resources. Idempotent."""
+        ...
+
+
+class SnapshotFrameStream:
+    """Adapt a grab()-based ``CaptureBackend`` into a ``FrameStream``."""
+
+    def __init__(self, backend: CaptureBackend, display_id: int | None = None) -> None:
+        self._backend = backend
+        self._display_id = display_id
+        self._closed = False
+
+    @property
+    def name(self) -> str:
+        return f"snapshot:{self._backend.name}"
+
+    def read(self) -> RawFrame:
+        if self._closed:
+            raise CaptureError("SnapshotFrameStream is closed")
+        return self._backend.grab(self._display_id)
+
+    def close(self) -> None:
+        self._closed = True
+
+
+def open_capture_stream(
+    backend: CaptureBackend,
+    display_id: int | None = None,
+) -> FrameStream:
+    """
+    Open a continuous stream for ``FramePump``.
+
+    If the backend exposes ``open_stream(display_id)``, use it; otherwise wrap
+    ``grab()`` in ``SnapshotFrameStream``.
+    """
+    opener = getattr(backend, "open_stream", None)
+    if callable(opener):
+        stream = opener(display_id)
+        if stream is not None:
+            return stream  # type: ignore[no-any-return]
+    return SnapshotFrameStream(backend, display_id)

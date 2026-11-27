@@ -1,24 +1,30 @@
 # Continuous capture roadmap
 
-Today every backend is **snapshot-based** (`grab()` / portal / `screencapture`). Continuous loops go through **FramePump**.
+Today every backend is still **snapshot-based** (`grab()` / portal / `screencapture`), but continuous loops go through **FramePump → FrameStream**.
 
 ## Current seam
 
 `screen_watch.capture.loop.FramePump` is the continuous API surface:
 
+- opens a `FrameStream` via `open_capture_stream()` (from v0.2.16)
+- default: `SnapshotFrameStream` (grab-per-tick wrapper)
 - yields processed `EncodedFrame`s at capped FPS
 - applies shared idle backoff (`screen_watch.backoff`)
 - **WatchDaemon** consumes FramePump into `FrameStore` (from v0.2.4)
-- **RecordingManager** consumes FramePump (fps capped at 3) with `force_keyframe()` for disk JPEGs (from v0.2.5)
+- **RecordingManager** consumes FramePump (fps capped at 3) with `force_keyframe()` (from v0.2.5)
 - When watch is already running, recording **taps** that `FrameStore` instead of a second grab loop (from v0.2.6)
-- backends can later replace the inner `grab()` with a native stream reader without changing MCP tools
+
+### Plugging a native stream
+
+Implement `open_stream(display_id) -> FrameStream` on a backend (`read()` / `close()`).
+FramePump prefers that over `SnapshotFrameStream`. MCP tools stay unchanged.
 
 ## Planned native streams (not shipped)
 
 | Platform | Target | Status |
 |----------|--------|--------|
-| Windows | DXCam / Desktop Duplication streaming | Snapshot via dxcam today |
-| macOS | ScreenCaptureKit stream | `screencapture` / Quartz stills today |
-| Linux | PipeWire screencast portal | grim / portal Screenshot stills today |
+| Windows | DXCam / Desktop Duplication streaming | Snapshot via dxcam; stream protocol ready |
+| macOS | ScreenCaptureKit stream | `screencapture` / Quartz stills; stream protocol ready |
+| Linux | PipeWire screencast portal | grim / portal Screenshot stills; stream protocol ready |
 
 Observation-only constraint remains: no input injection.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.16 — 2026-11-27
+
+- ``FrameStream`` protocol + ``SnapshotFrameStream``; FramePump opens streams via ``open_capture_stream``
+- Native backends can implement ``open_stream()`` without MCP changes
+
 ## 0.2.15 — 2026-11-27
 
 - Optional ``image_format=webp`` (env ``SCREEN_WATCH_IMAGE_FORMAT`` / config.toml)
