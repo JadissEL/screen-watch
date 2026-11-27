@@ -3,7 +3,7 @@
 screen-watch is installable from GitHub today:
 
 ```bash
-pip install "git+https://github.com/JadissEL/screen-watch.git@v0.2.16"
+pip install "git+https://github.com/JadissEL/screen-watch.git@v0.2.17"
 ```
 
 ## When you are ready for PyPI

@@ -395,6 +395,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **get_config** | Effective settings for agents/CLI | **Done (0.2.14)** |
 | **Optional WebP** | ``image_format`` jpeg\|webp end-to-end | **Done (0.2.15)** |
 | **FrameStream seam** | Protocol + SnapshotFrameStream; FramePump uses open_capture_stream | **Done (0.2.16)** |
+| **DXCam stream + status** | DxcamFrameStream; status.stream_name | **Done (0.2.17)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

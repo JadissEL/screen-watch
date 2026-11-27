@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.17 — 2026-11-27
+
+- DXCam ``open_stream`` → ``DxcamFrameStream`` (``start`` / ``get_latest_frame``)
+- ``get_watch_status`` includes ``stream_name``
+
 ## 0.2.16 — 2026-11-27
 
 - ``FrameStream`` protocol + ``SnapshotFrameStream``; FramePump opens streams via ``open_capture_stream``

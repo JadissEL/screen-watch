@@ -30,7 +30,7 @@ def create_backend(settings: Settings | None = None, backend: BackendName | None
         return MssBackend()
 
     if choice == "dxcam":
-        return _try_dxcam() or _require_mss("dxcam unavailable")
+        return _try_dxcam(cfg) or _require_mss("dxcam unavailable")
 
     if choice == "sck":
         return _try_sck() or _require_mss("sck unavailable")
@@ -40,7 +40,7 @@ def create_backend(settings: Settings | None = None, backend: BackendName | None
 
     # auto
     if sys.platform == "win32":
-        dx = _try_dxcam()
+        dx = _try_dxcam(cfg)
         if dx is not None:
             return dx
     elif sys.platform == "darwin":
@@ -60,11 +60,14 @@ def _require_mss(reason: str) -> CaptureBackend:
     return MssBackend()
 
 
-def _try_dxcam() -> CaptureBackend | None:
+def _try_dxcam(settings: Settings | None = None) -> CaptureBackend | None:
     try:
         from screen_watch.capture.dxcam_backend import DxcamBackend
 
-        return DxcamBackend()
+        backend = DxcamBackend()
+        if settings is not None:
+            backend._stream_fps = settings.capped_fps()
+        return backend
     except CaptureError as exc:
         logger.info("dxcam not used: %s", exc)
         return None

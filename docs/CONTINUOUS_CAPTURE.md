@@ -23,7 +23,7 @@ FramePump prefers that over `SnapshotFrameStream`. MCP tools stay unchanged.
 
 | Platform | Target | Status |
 |----------|--------|--------|
-| Windows | DXCam / Desktop Duplication streaming | Snapshot via dxcam; stream protocol ready |
+| Windows | DXCam / Desktop Duplication streaming | **`DxcamFrameStream`** via `start()` + `get_latest_frame()` (v0.2.17); snapshot fallback |
 | macOS | ScreenCaptureKit stream | `screencapture` / Quartz stills; stream protocol ready |
 | Linux | PipeWire screencast portal | grim / portal Screenshot stills; stream protocol ready |
 

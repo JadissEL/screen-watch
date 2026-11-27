@@ -55,6 +55,10 @@ class WatchDaemon:
     def unchanged_streak(self) -> int:
         return self._pump.unchanged_streak if self._pump is not None else 0
 
+    @property
+    def stream_name(self) -> str | None:
+        return self._pump.stream_name if self._pump is not None else None
+
     def start(self) -> bool:
         """Start the loop. Idempotent. Returns True if newly started."""
         if self.running:

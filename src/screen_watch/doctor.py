@@ -52,7 +52,7 @@ def run_doctor() -> dict[str, Any]:
             "watch": "WatchDaemon → FramePump → FrameStore",
             "recording": "FramePump or shared FrameStore tap",
             "default_stream": "SnapshotFrameStream (grab-per-tick)",
-            "native_streams": "planned (SCK / PipeWire / DXCam via open_stream)",
+            "native_streams": "DXCam open_stream shipped; SCK / PipeWire planned",
         },
         "tools": {
             "grim": bool(shutil.which("grim")),

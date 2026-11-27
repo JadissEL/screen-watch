@@ -407,6 +407,7 @@ class ScreenWatchService:
             "history_size": self.settings.history_size,
             "idle_backoff": self.settings.idle_backoff,
             "unchanged_streak": self.daemon.unchanged_streak,
+            "stream_name": self.daemon.stream_name,
             "recording_enabled": self.settings.recording_enabled,
             "last_error": self.daemon.last_error,
             "frame": None
