@@ -32,6 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     once.add_argument("--blur", action="store_true", help="Pixelate the frame")
     once.add_argument("--display", type=int, default=None, help="1-based monitor id")
     sub.add_parser("status", help="Print backend / config status")
+    sub.add_parser("config", help="Print effective settings JSON (paths, no secrets)")
     advise = sub.add_parser("advise", help="PC capacity + LLM cost summary")
     advise.add_argument("--model", help="Preferred LLM id (persisted)")
     sub.add_parser("models", help="List built-in vision LLM catalog")
@@ -114,6 +115,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "status":
         print(json.dumps(get_service().status(), indent=2))
         print(privacy_blurb(), file=sys.stderr)
+        return 0
+
+    if args.cmd == "config":
+        print(json.dumps(settings.as_public_dict(), indent=2))
         return 0
 
     if args.cmd == "advise":

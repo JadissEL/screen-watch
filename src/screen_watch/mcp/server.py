@@ -124,6 +124,11 @@ def build_server() -> Any:
         }
 
     @mcp.tool()
+    def get_config() -> dict[str, Any]:
+        """Return effective capture/recording settings (local paths only; no secrets)."""
+        return get_service().settings.as_public_dict()
+
+    @mcp.tool()
     def get_latest_frame(blur: bool = False, since_hash: str = "") -> Any:
         """
         Capture or return the latest desktop frame as JPEG (observation only).

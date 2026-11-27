@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.14 — 2026-11-27
+
+- MCP ``get_config`` + CLI ``screen-watch config`` (effective settings)
+
 ## 0.2.13 — 2026-11-27
 
 - MCP resource ``screen://recordings``

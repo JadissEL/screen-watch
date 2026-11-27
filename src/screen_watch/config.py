@@ -112,6 +112,33 @@ class Settings:
     def capped_fps(self) -> float:
         return max(0.1, min(float(self.fps), DEFAULT_FPS_CAP))
 
+    def as_public_dict(self) -> dict[str, Any]:
+        """Effective settings for agents/CLI (no secrets — none are stored here)."""
+        return {
+            "max_width": self.max_width,
+            "max_height": self.max_height,
+            "fps": self.fps,
+            "capped_fps": self.capped_fps(),
+            "jpeg_quality": self.jpeg_quality,
+            "change_threshold": self.change_threshold,
+            "backend": self.backend,
+            "display": self.display,
+            "blur": self.blur,
+            "blur_block": self.blur_block,
+            "log_level": self.log_level,
+            "recording_enabled": self.recording_enabled,
+            "recordings_dir": str(self.recordings_dir),
+            "preferred_llm": self.preferred_llm,
+            "focus_hotkey": self.focus_hotkey,
+            "min_capture_interval_s": self.min_capture_interval_s,
+            "history_size": self.history_size,
+            "idle_backoff": self.idle_backoff,
+            "idle_backoff_max": self.idle_backoff_max,
+            "config_path": str(default_config_path()),
+            "config_dir": str(config_dir()),
+            "data_dir": str(data_dir()),
+        }
+
 
 def load_settings(**overrides: Any) -> Settings:
     """Load settings from config.toml, then environment, then explicit overrides."""

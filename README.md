@@ -40,6 +40,9 @@ python -m screen_watch advise --model gpt-4o
 # Backend / deps check
 python -m screen_watch doctor
 
+# Effective settings
+python -m screen_watch config
+
 # Grab+encode latency
 python -m screen_watch bench -n 5
 
