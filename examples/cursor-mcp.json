@@ -4,10 +4,12 @@
       "command": "python",
       "args": ["-m", "screen_watch", "serve"],
       "env": {
+        "SCREEN_WATCH_BACKEND": "mss",
         "SCREEN_WATCH_MAX_WIDTH": "1280",
         "SCREEN_WATCH_MAX_HEIGHT": "720",
         "SCREEN_WATCH_FPS": "5",
-        "SCREEN_WATCH_JPEG_QUALITY": "60"
+        "SCREEN_WATCH_JPEG_QUALITY": "60",
+        "SCREEN_WATCH_IMAGE_FORMAT": "jpeg"
       }
     }
   }
