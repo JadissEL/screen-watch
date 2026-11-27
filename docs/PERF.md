@@ -25,4 +25,4 @@ Defaults are already conservative (1280×720 @ 5 FPS, JPEG 60, change-detect).
 
 ## Not yet in-tree
 
-Continuous ScreenCaptureKit / PipeWire screencast streams (snapshot backends only today).
+Native ScreenCaptureKit / PipeWire screencast streams — see [CONTINUOUS_CAPTURE.md](CONTINUOUS_CAPTURE.md). `FramePump` is the timed continuous seam today.

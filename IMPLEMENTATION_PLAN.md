@@ -368,7 +368,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **macOS capture** | System `screencapture` when present, else mss (pyobjc SCK still future) | **Done (0.1.3)** |
 | **Doctor / CI** | `doctor` CLI+MCP; GitHub Actions matrix | **Done (0.1.3)** |
 | **True click-through** | Overlay must capture input while dragging; layered tool-window styles applied; not permanent click-through | Partial — OK by design while selecting |
-| **Native SCK / PipeWire portal** | Quartz optional (`[macos]`); portal Screenshot via gdbus; full ScreenCaptureKit screencast stream still future | **Partial (0.1.4)** |
+| **Native SCK / PipeWire portal** | Quartz optional (`[macos]`); portal Screenshot via gdbus; `FramePump` seam (0.2.3); full SCK/PipeWire stream still future | **Partial (0.1.4 / 0.2.3)** |
 | **Mock backend** | Headless tests without a display | **Done (0.1.4)** |
 | **Capture gating** | Serialize grabs + min interval; `get_latest_frame_info` | **Done (0.1.5)** |
 | **P4 hardening slice** | Path export tool, tool catalog, PERF.md, configurable gate, py.typed | **Done (0.1.6)** |
@@ -381,6 +381,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **0.2 stable surface** | STABLE_API.md; `change_score`; Actions v7 | **Done (0.2.0)** |
 | **Idle backoff** | Adaptive watch interval when unchanged; history score filter | **Done (0.2.1)** |
 | **Recording hygiene + PyPI docs** | Delete/keyframes tools; record idle backoff; PYPI.md; observation prompt | **Done (0.2.2)** |
+| **FramePump + keyframe load** | Continuous grab helper; `get_recording_keyframe`; stream roadmap doc | **Done (0.2.3)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

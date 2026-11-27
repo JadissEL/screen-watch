@@ -178,6 +178,45 @@ class RecordingManager:
             "keyframes": frames[:n],
         }
 
+    def read_keyframe(self, session_id: str, file: str) -> dict[str, Any]:
+        """
+        Read a keyframe JPEG from a session (path must be under session/frames/).
+
+        Returns ``{"ok": True, "jpeg": bytes, ...}`` or an error dict (no path escape).
+        """
+        sid = Path(session_id).name
+        rel = Path(file)
+        if rel.is_absolute() or ".." in rel.parts:
+            return {"ok": False, "error": "Invalid frame path"}
+        sess = (self._root / sid).resolve()
+        try:
+            sess.relative_to(self._root.resolve())
+        except ValueError:
+            return {"ok": False, "error": "Invalid session path"}
+        target = (sess / rel).resolve()
+        try:
+            target.relative_to(sess / "frames")
+        except ValueError:
+            # also allow paths already prefixed with frames/
+            try:
+                target.relative_to(sess)
+            except ValueError:
+                return {"ok": False, "error": "Frame path escapes session"}
+            if "frames" not in target.parts:
+                return {"ok": False, "error": "Frame must be under frames/"}
+        if not target.is_file():
+            return {"ok": False, "error": f"Missing frame file {file}"}
+        data = target.read_bytes()
+        if data[:2] != b"\xff\xd8":
+            return {"ok": False, "error": "Not a JPEG frame"}
+        return {
+            "ok": True,
+            "session_id": sid,
+            "file": str(rel).replace("\\", "/"),
+            "bytes": len(data),
+            "jpeg": data,
+        }
+
     def _run(self) -> None:
         backend = create_backend(self._settings)
         base_interval = 1.0 / max(1.0, min(self._settings.capped_fps(), 3.0))  # gentler while recording

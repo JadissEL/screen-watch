@@ -32,7 +32,7 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 | `list_displays` | Monitors |
 | `list_tools` | Same catalog as `screen://tools` |
 | `get_advisor_summary` / `set_preferred_llm` / `run_capacity_profile` / `list_llm_models` | Local advisor |
-| `start_recording` / `stop_recording` / `list_recordings` / `get_recording_timeline` / `list_recording_keyframes` / `delete_recording` / `attach_recording_context` | Opt-in sessions |
+| `start_recording` / `stop_recording` / `list_recordings` / `get_recording_timeline` / `list_recording_keyframes` / `get_recording_keyframe` / `delete_recording` / `attach_recording_context` | Opt-in sessions |
 | `get_region_frame` / `guided_region_focus` / `get_latest_focus` | Region focus |
 | `doctor` | Install / backend report |
 

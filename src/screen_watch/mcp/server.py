@@ -368,6 +368,19 @@ def build_server() -> Any:
         return _get_recorder().list_keyframes(session_id, limit=limit)
 
     @mcp.tool()
+    def get_recording_keyframe(session_id: str, file: str) -> Any:
+        """
+        Load one recording keyframe JPEG by relative path (from list_recording_keyframes).
+
+        Example file: ``frames/frame_000000.jpg``
+        """
+        result = _get_recorder().read_keyframe(session_id, file)
+        if not result.get("ok"):
+            return result
+        jpeg = result.pop("jpeg")
+        return _image_result(jpeg, result)
+
+    @mcp.tool()
     def delete_recording(session_id: str) -> dict[str, Any]:
         """Delete a finished local recording session directory."""
         return _get_recorder().delete_session(session_id)

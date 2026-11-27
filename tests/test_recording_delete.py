@@ -15,6 +15,8 @@ def test_delete_and_keyframes(tmp_path: Path) -> None:
     sid = "abc123deadbe"
     sess = tmp_path / sid
     (sess / "frames").mkdir(parents=True)
+    jpeg = b"\xff\xd8\xff\xd9" + b"x" * 20
+    (sess / "frames" / "frame_000000.jpg").write_bytes(jpeg)
     (sess / "meta.json").write_text(json.dumps({"id": sid, "title": "t"}), encoding="utf-8")
     (sess / "timeline.json").write_text(
         json.dumps(
@@ -31,6 +33,11 @@ def test_delete_and_keyframes(tmp_path: Path) -> None:
     keys = mgr.list_keyframes(sid)
     assert keys["total_keyframes"] == 1
     assert keys["keyframes"][0]["file"].endswith(".jpg")
+
+    loaded = mgr.read_keyframe(sid, "frames/frame_000000.jpg")
+    assert loaded["ok"] is True
+    assert loaded["jpeg"][:2] == b"\xff\xd8"
+    assert mgr.read_keyframe(sid, "../secrets.jpg")["ok"] is False
 
     assert mgr.delete_session("..")["ok"] is False
     assert mgr.delete_session(sid)["ok"] is True

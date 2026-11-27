@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3 — 2026-11-27
+
+- `FramePump` continuous grab seam (`capture/loop.py`) + CONTINUOUS_CAPTURE.md roadmap
+- MCP `get_recording_keyframe` (safe path-checked JPEG load)
+
 ## 0.2.2 — 2026-11-27
 
 - Recording: `delete_recording`, `list_recording_keyframes`; idle backoff while recording
