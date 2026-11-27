@@ -10,6 +10,7 @@ Today every backend is **snapshot-based** (`grab()` / portal / `screencapture`).
 - applies shared idle backoff (`screen_watch.backoff`)
 - **WatchDaemon** consumes FramePump into `FrameStore` (from v0.2.4)
 - **RecordingManager** consumes FramePump (fps capped at 3) with `force_keyframe()` for disk JPEGs (from v0.2.5)
+- When watch is already running, recording **taps** that `FrameStore` instead of a second grab loop (from v0.2.6)
 - backends can later replace the inner `grab()` with a native stream reader without changing MCP tools
 
 ## Planned native streams (not shipped)

@@ -384,6 +384,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **FramePump + keyframe load** | Continuous grab helper; `get_recording_keyframe`; stream roadmap doc | **Done (0.2.3)** |
 | **Daemon on FramePump** | WatchDaemon consumes FramePump; shared backoff module | **Done (0.2.4)** |
 | **Recording on FramePump** | RecordingManager + force_keyframe; unified continuous seam | **Done (0.2.5)** |
+| **Shared store recording** | Record taps watch FrameStore when daemon running | **Done (0.2.6)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 

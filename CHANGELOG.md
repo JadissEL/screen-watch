@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.6 — 2026-11-27
+
+- Recording taps the watch ``FrameStore`` when the daemon is already running (no second grab loop)
+- ``start_recording`` returns ``capture_source``: ``shared_store`` | ``frame_pump``
+
 ## 0.2.5 — 2026-11-27
 
 - RecordingManager runs on ``FramePump`` (fps cap 3) with ``force_keyframe()``

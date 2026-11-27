@@ -344,8 +344,12 @@ def build_server() -> Any:
         Start an opt-in local recording session (off unless recording.enabled).
 
         Returns capacity advice but never refuses for hardware reasons.
+        When the watch daemon is already running, recording taps its FrameStore
+        instead of opening a second capture loop.
         """
-        return _get_recorder().start(title=title or None)
+        svc = get_service()
+        shared = svc.store if svc.daemon.running else None
+        return _get_recorder().start(title=title or None, shared_store=shared)
 
     @mcp.tool()
     def stop_recording() -> dict[str, Any]:

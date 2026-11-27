@@ -20,6 +20,7 @@ from screen_watch.advisor.profiler import (
 from screen_watch.capture.factory import create_backend
 from screen_watch.capture.loop import FramePump
 from screen_watch.config import Settings
+from screen_watch.pipeline.frame_store import FrameStore
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,8 @@ class RecordingManager:
         self._thread: threading.Thread | None = None
         self._stop = threading.Event()
         self._pump: FramePump | None = None
+        self._shared_store: FrameStore | None = None
+        self._capture_source: str = "frame_pump"
         self._root = Path(settings.recordings_dir)
         self._root.mkdir(parents=True, exist_ok=True)
 
@@ -52,8 +55,18 @@ class RecordingManager:
     def active(self) -> RecordingSession | None:
         return self._active
 
-    def start(self, title: str | None = None) -> dict[str, Any]:
-        """Start recording if enabled. Always returns advice; never refuses for capacity."""
+    def start(
+        self,
+        title: str | None = None,
+        *,
+        shared_store: FrameStore | None = None,
+    ) -> dict[str, Any]:
+        """
+        Start recording if enabled. Always returns advice; never refuses for capacity.
+
+        When ``shared_store`` is set (watch daemon already filling it), record taps
+        that store instead of opening a second capture loop.
+        """
         advice = capacity_advice_message()
         if not self._settings.recording_enabled:
             return {
@@ -75,21 +88,30 @@ class RecordingManager:
                 started_ms=started,
                 dir=str(sess_dir),
             )
+            source = "shared_store" if shared_store is not None else "frame_pump"
             meta = {
                 "id": sid,
                 "title": session.title,
                 "started_ms": started,
+                "capture_source": source,
                 "sync": {"epoch_ms": started, "note": "Align agent STT timestamps to started_ms / frame t_ms"},
                 "advice": advice,
                 "profile": recommend_settings(profile_machine()),
             }
             (sess_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
             self._active = session
+            self._shared_store = shared_store
+            self._capture_source = source
             self._stop.clear()
             self._pump = None
             self._thread = threading.Thread(target=self._run, name="screen-watch-record", daemon=True)
             self._thread.start()
-            return {"ok": True, "session": asdict(session), "advice": advice}
+            return {
+                "ok": True,
+                "session": asdict(session),
+                "advice": advice,
+                "capture_source": source,
+            }
 
     def stop(self) -> dict[str, Any]:
         with self._lock:
@@ -108,6 +130,8 @@ class RecordingManager:
             result = asdict(session)
             self._active = None
             self._thread = None
+            self._shared_store = None
+            self._capture_source = "frame_pump"
             return {"ok": True, "session": result}
 
     def list_sessions(self) -> list[dict[str, Any]]:
@@ -220,6 +244,9 @@ class RecordingManager:
         }
 
     def _run(self) -> None:
+        if self._shared_store is not None:
+            self._run_from_store()
+            return
         backend = create_backend(self._settings)
         # Gentler FPS while recording; same FramePump seam as WatchDaemon.
         pump = FramePump(
@@ -247,6 +274,31 @@ class RecordingManager:
                     logger.warning("Recording tick failed: %s", exc)
         finally:
             self._pump = None
+
+    def _run_from_store(self) -> None:
+        """Tap an existing watch FrameStore — no second grab loop."""
+        store = self._shared_store
+        assert store is not None
+        interval = 1.0 / 3.0
+        last_hash: str | None = None
+        while not self._stop.is_set():
+            t0 = time.perf_counter()
+            try:
+                frame = store.get()
+                if frame is not None and frame.jpeg:
+                    if last_hash is not None and frame.content_hash == last_hash:
+                        if self._active and self._active.frame_count > 0:
+                            t_ms = frame.timestamp_ms - self._active.started_ms
+                            self._active.timeline.append(
+                                {"t_ms": round(t_ms, 1), "unchanged": True, "file": None}
+                            )
+                    else:
+                        self._append_frame(frame)
+                        last_hash = frame.content_hash
+            except Exception as exc:
+                logger.warning("Recording store-tap failed: %s", exc)
+            elapsed = time.perf_counter() - t0
+            self._stop.wait(max(0.0, interval - elapsed))
 
     def _append_frame(self, encoded: Any) -> None:
         session = self._active
