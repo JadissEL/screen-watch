@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.19 — 2026-11-27
+
+- DXCam stream: bound ``get_latest_frame`` wait (1.5s) then ``grab()`` fallback — avoids hung ``wait --start-watch``
+
 ## 0.2.18 — 2026-11-27
 
 - MCP/CLI ``set_image_format`` / ``screen-watch format``

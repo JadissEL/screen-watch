@@ -58,12 +58,27 @@ class DxcamFrameStream:
         if self._streaming:
             getter = getattr(self._camera, "get_latest_frame", None)
             if callable(getter):
-                # Brief spin if the buffer is empty on the first ticks
-                for _ in range(50):
-                    frame = getter()
-                    if frame is not None:
-                        break
-                    time.sleep(0.01)
+                # get_latest_frame can block indefinitely if the buffer never fills
+                # (e.g. after a rapid stop/restart). Bound the wait, then grab().
+                import threading
+
+                box: dict[str, Any] = {}
+                done = threading.Event()
+
+                def _pull() -> None:
+                    try:
+                        box["frame"] = getter()
+                    except Exception as exc:  # pragma: no cover
+                        box["error"] = exc
+                    finally:
+                        done.set()
+
+                t = threading.Thread(target=_pull, name="dxcam-latest", daemon=True)
+                t.start()
+                if done.wait(1.5):
+                    if "error" in box:
+                        raise CaptureError(f"dxcam get_latest_frame failed: {box['error']}")
+                    frame = box.get("frame")
         if frame is None:
             frame = self._camera.grab()
         if frame is None:

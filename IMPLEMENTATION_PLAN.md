@@ -397,6 +397,7 @@ Ideas below are **not** P0–P1 scope. They are tracked here so overlapping conc
 | **FrameStream seam** | Protocol + SnapshotFrameStream; FramePump uses open_capture_stream | **Done (0.2.16)** |
 | **DXCam stream + status** | DxcamFrameStream; status.stream_name | **Done (0.2.17)** |
 | **set_image_format + OS streams** | Runtime jpeg/webp switch; Linux/macOS open_stream | **Done (0.2.18)** |
+| **DXCam wait hang fix** | Bound get_latest_frame; grab fallback | **Done (0.2.19)** |
 
 **Out of scope:** mouse/keyboard control of the desktop; permanent always-on overlay.
 
