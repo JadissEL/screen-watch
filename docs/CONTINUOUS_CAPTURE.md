@@ -1,6 +1,6 @@
 # Continuous capture roadmap
 
-Today every backend is **snapshot-based** (`grab()` / portal / `screencapture`). The watch daemon and recording loop call grab on a timer.
+Today every backend is **snapshot-based** (`grab()` / portal / `screencapture`). Continuous loops go through **FramePump**.
 
 ## Current seam
 
@@ -9,6 +9,7 @@ Today every backend is **snapshot-based** (`grab()` / portal / `screencapture`).
 - yields processed `EncodedFrame`s at capped FPS
 - applies shared idle backoff (`screen_watch.backoff`)
 - **WatchDaemon** consumes FramePump into `FrameStore` (from v0.2.4)
+- **RecordingManager** consumes FramePump (fps capped at 3) with `force_keyframe()` for disk JPEGs (from v0.2.5)
 - backends can later replace the inner `grab()` with a native stream reader without changing MCP tools
 
 ## Planned native streams (not shipped)

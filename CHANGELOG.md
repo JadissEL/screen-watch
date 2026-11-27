@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5 — 2026-11-27
+
+- RecordingManager runs on ``FramePump`` (fps cap 3) with ``force_keyframe()``
+- Docs: continuous capture seam covers both watch and record
+
 ## 0.2.4 — 2026-11-27
 
 - WatchDaemon now runs on ``FramePump`` (single continuous capture path)

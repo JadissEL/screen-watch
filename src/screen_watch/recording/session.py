@@ -17,10 +17,9 @@ from screen_watch.advisor.profiler import (
     profile_machine,
     recommend_settings,
 )
-from screen_watch.backoff import idle_wait_factor
 from screen_watch.capture.factory import create_backend
+from screen_watch.capture.loop import FramePump
 from screen_watch.config import Settings
-from screen_watch.pipeline.process import process_raw_frame
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,7 @@ class RecordingManager:
         self._active: RecordingSession | None = None
         self._thread: threading.Thread | None = None
         self._stop = threading.Event()
-        self._thumb = None
+        self._pump: FramePump | None = None
         self._root = Path(settings.recordings_dir)
         self._root.mkdir(parents=True, exist_ok=True)
 
@@ -87,6 +86,7 @@ class RecordingManager:
             (sess_dir / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
             self._active = session
             self._stop.clear()
+            self._pump = None
             self._thread = threading.Thread(target=self._run, name="screen-watch-record", daemon=True)
             self._thread.start()
             return {"ok": True, "session": asdict(session), "advice": advice}
@@ -96,6 +96,8 @@ class RecordingManager:
             if self._active is None:
                 return {"ok": False, "error": "No active recording"}
             self._stop.set()
+            if self._pump is not None:
+                self._pump.stop()
         if self._thread is not None:
             self._thread.join(timeout=10.0)
         with self._lock:
@@ -219,38 +221,32 @@ class RecordingManager:
 
     def _run(self) -> None:
         backend = create_backend(self._settings)
-        base_interval = 1.0 / max(1.0, min(self._settings.capped_fps(), 3.0))  # gentler while recording
-        unchanged_streak = 0
-        while not self._stop.is_set():
-            t0 = time.perf_counter()
-            try:
-                raw = backend.grab(self._settings.display)
-                encoded, self._thumb = process_raw_frame(
-                    raw, self._settings, previous_thumb=self._thumb
-                )
-                if encoded.unchanged and self._active and self._active.frame_count > 0:
-                    # Still log a timeline tick without rewriting identical JPEG
-                    t_ms = raw.timestamp_ms - (self._active.started_ms)
-                    self._active.timeline.append(
-                        {"t_ms": round(t_ms, 1), "unchanged": True, "file": None}
-                    )
-                    unchanged_streak += 1
-                else:
-                    if encoded.unchanged or not encoded.jpeg:
-                        encoded, self._thumb = process_raw_frame(
-                            raw, self._settings, previous_thumb=None, skip_change_detect=True
+        # Gentler FPS while recording; same FramePump seam as WatchDaemon.
+        pump = FramePump(
+            backend,
+            self._settings,
+            stop_event=self._stop,
+            fps_cap=3.0,
+        )
+        self._pump = pump
+        try:
+            for encoded in pump.frames():
+                if self._stop.is_set():
+                    break
+                try:
+                    if encoded.unchanged and self._active and self._active.frame_count > 0:
+                        t_ms = encoded.timestamp_ms - self._active.started_ms
+                        self._active.timeline.append(
+                            {"t_ms": round(t_ms, 1), "unchanged": True, "file": None}
                         )
-                    self._append_frame(encoded)
-                    unchanged_streak = 0
-            except Exception as exc:
-                logger.warning("Recording tick failed: %s", exc)
-            elapsed = time.perf_counter() - t0
-            factor = idle_wait_factor(
-                unchanged_streak,
-                enabled=self._settings.idle_backoff,
-                max_factor=self._settings.idle_backoff_max,
-            )
-            self._stop.wait(max(0.0, base_interval * factor - elapsed))
+                    else:
+                        if encoded.unchanged or not encoded.jpeg:
+                            encoded = pump.force_keyframe()
+                        self._append_frame(encoded)
+                except Exception as exc:
+                    logger.warning("Recording tick failed: %s", exc)
+        finally:
+            self._pump = None
 
     def _append_frame(self, encoded: Any) -> None:
         session = self._active

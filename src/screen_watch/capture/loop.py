@@ -51,6 +51,18 @@ class FramePump:
     def stop(self) -> None:
         self._stop.set()
 
+    def force_keyframe(self) -> EncodedFrame:
+        """Grab once and encode without change-detection (always produces JPEG bytes)."""
+        raw = self._backend.grab(self._settings.display)
+        encoded, self._thumb = process_raw_frame(
+            raw,
+            self._settings,
+            previous_thumb=None,
+            skip_change_detect=True,
+        )
+        self._unchanged_streak = 0
+        return encoded
+
     def frames(self) -> Iterator[EncodedFrame]:
         fps = self._settings.capped_fps()
         if self._fps_cap is not None:
