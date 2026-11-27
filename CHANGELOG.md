@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.12 — 2026-11-27
+
+- MCP ``get_recording_meta``; richer ``list_recordings`` (ended_ms, capture_source, active)
+- CLI ``screen-watch recordings``
+- MCP ``reset_change_region``
+
 ## 0.2.11 — 2026-11-27
 
 - MCP/CLI ``rename_recording`` / ``screen-watch rename`` for session titles

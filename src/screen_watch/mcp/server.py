@@ -274,6 +274,11 @@ def build_server() -> Any:
         return result
 
     @mcp.tool()
+    def reset_change_region() -> dict[str, Any]:
+        """Clear the get_change_region baseline (next call re-seeds)."""
+        return get_service().reset_change_region()
+
+    @mcp.tool()
     def save_latest_frame(
         path: str = "",
         blur: bool = False,
@@ -400,6 +405,11 @@ def build_server() -> Any:
     def list_recordings() -> list[dict[str, Any]]:
         """List local recording sessions (branch-like artifacts)."""
         return _get_recorder().list_sessions()
+
+    @mcp.tool()
+    def get_recording_meta(session_id: str) -> dict[str, Any]:
+        """Return session meta + frame/keyframe counts (no full timeline dump)."""
+        return _get_recorder().get_meta(session_id)
 
     @mcp.tool()
     def get_recording_timeline(session_id: str) -> dict[str, Any]:

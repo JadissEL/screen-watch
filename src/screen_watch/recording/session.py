@@ -147,20 +147,62 @@ class RecordingManager:
                 meta = json.loads(meta_path.read_text(encoding="utf-8"))
                 tl_path = path / "timeline.json"
                 frames = 0
+                ended = meta.get("ended_ms")
                 if tl_path.exists():
-                    frames = len(json.loads(tl_path.read_text(encoding="utf-8")).get("frames", []))
+                    tl = json.loads(tl_path.read_text(encoding="utf-8"))
+                    frames = len(tl.get("frames", []))
+                    ended = ended if ended is not None else tl.get("ended_ms")
                 out.append(
                     {
                         "id": meta.get("id", path.name),
                         "title": meta.get("title"),
                         "started_ms": meta.get("started_ms"),
+                        "ended_ms": ended,
                         "dir": str(path),
                         "frame_count": frames,
+                        "capture_source": meta.get("capture_source"),
+                        "active": self._active is not None and self._active.id == path.name,
                     }
                 )
             except Exception:
                 logger.debug("skip corrupt session %s", path, exc_info=True)
         return out
+
+    def get_meta(self, session_id: str) -> dict[str, Any]:
+        """Return session meta.json (+ light timeline stats) without full frame index."""
+        path, err = self._session_dir(session_id)
+        if err is not None:
+            return err
+        assert path is not None
+        meta_path = path / "meta.json"
+        if not meta_path.exists():
+            return {"ok": False, "error": f"No meta for {path.name}"}
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            return {"ok": False, "error": f"Corrupt meta: {exc}"}
+        frames = 0
+        keyframes = 0
+        tl_path = path / "timeline.json"
+        if tl_path.exists():
+            try:
+                tl = json.loads(tl_path.read_text(encoding="utf-8"))
+                fl = tl.get("frames", [])
+                frames = len(fl)
+                keyframes = sum(1 for f in fl if not f.get("unchanged") and f.get("file"))
+                if meta.get("ended_ms") is None and tl.get("ended_ms") is not None:
+                    meta["ended_ms"] = tl.get("ended_ms")
+            except Exception:
+                logger.debug("timeline stats skipped for %s", path.name, exc_info=True)
+        return {
+            "ok": True,
+            "session_id": path.name,
+            "dir": str(path),
+            "meta": meta,
+            "frame_count": frames,
+            "keyframe_count": keyframes,
+            "active": self._active is not None and self._active.id == path.name,
+        }
 
     def get_timeline(self, session_id: str) -> dict[str, Any]:
         path = self._root / session_id / "timeline.json"

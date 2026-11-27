@@ -188,6 +188,11 @@ class ScreenWatchService:
             out["region_height"] = crop.height
         return out
 
+    def reset_change_region(self) -> dict[str, Any]:
+        """Clear the get_change_region baseline so the next call re-seeds."""
+        self._prev_change_jpeg = None
+        return {"ok": True, "cleared": True}
+
     def latest_for_agent(self, *, blur: bool | None = None) -> EncodedFrame:
         """
         Prefer daemon store; otherwise one-shot.

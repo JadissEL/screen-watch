@@ -84,6 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     rename = sub.add_parser("rename", help="Rename a recording session title")
     rename.add_argument("session_id", help="Recording session id")
     rename.add_argument("title", help="New title")
+    sub.add_parser("recordings", help="List local recording sessions (JSON)")
 
     args = parser.parse_args(argv)
     settings = load_settings()
@@ -210,6 +211,12 @@ def main(argv: list[str] | None = None) -> int:
         out = mgr.rename_session(args.session_id, args.title)
         print(json.dumps(out, indent=2))
         return 0 if out.get("ok") else 1
+
+    if args.cmd == "recordings":
+        from screen_watch.recording.session import RecordingManager
+
+        print(json.dumps(RecordingManager(settings).list_sessions(), indent=2))
+        return 0
 
     if args.cmd == "watch":
         import time

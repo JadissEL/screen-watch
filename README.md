@@ -55,6 +55,9 @@ python -m screen_watch export <session_id> --keyframes-only
 # Rename a recording session
 python -m screen_watch rename <session_id> "pilot review"
 
+# List recording sessions
+python -m screen_watch recordings
+
 # MCP stdio server (default)
 python -m screen_watch serve
 ```

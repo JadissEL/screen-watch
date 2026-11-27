@@ -28,13 +28,14 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 | `save_latest_frame` | Write JPEG to disk path |
 | `wait_for_change` | Block until hash/score changes (`timeout_s` ≤ 120); metadata only |
 | `get_change_region` | BBox (+ optional crop) of pixels changed since last call |
+| `reset_change_region` | Clear change-region baseline |
 | `bench_capture` | Local latency ms |
 | `start_watch` / `stop_watch` / `get_watch_status` | Daemon (`start_watch(display_id=…)`) |
 | `set_capture_display` | Default monitor for watch / latest frame |
 | `list_displays` | Monitors |
 | `list_tools` | Same catalog as `screen://tools` |
 | `get_advisor_summary` / `set_preferred_llm` / `run_capacity_profile` / `list_llm_models` | Local advisor |
-| `start_recording` / `stop_recording` / `list_recordings` / `get_recording_timeline` / `list_recording_keyframes` / `get_recording_keyframe` / `delete_recording` / `rename_recording` / `export_recording` / `attach_recording_context` | Opt-in sessions |
+| `start_recording` / `stop_recording` / `list_recordings` / `get_recording_meta` / `get_recording_timeline` / `list_recording_keyframes` / `get_recording_keyframe` / `delete_recording` / `rename_recording` / `export_recording` / `attach_recording_context` | Opt-in sessions |
 | `get_region_frame` / `guided_region_focus` / `get_latest_focus` | Region focus |
 | `doctor` | Install / backend report |
 
