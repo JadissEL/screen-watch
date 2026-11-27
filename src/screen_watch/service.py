@@ -231,6 +231,82 @@ class ScreenWatchService:
             "timestamp_ms": frame.timestamp_ms,
         }
 
+    def wait_for_change(
+        self,
+        *,
+        since_hash: str = "",
+        min_change_score: float = 0.0,
+        timeout_s: float = 30.0,
+        poll_s: float = 0.25,
+    ) -> dict[str, Any]:
+        """
+        Block until the screen differs from ``since_hash`` (or the current frame).
+
+        Prefer ``start_watch`` first so polls read the store instead of re-grabbing.
+        Never blocks longer than 120s. Observation only — no input injection.
+        """
+        import time
+
+        timeout = max(0.1, min(float(timeout_s), 120.0))
+        poll = max(0.05, min(float(poll_s), 2.0))
+        min_score = max(0.0, float(min_change_score))
+        baseline = (since_hash or "").strip()
+        if not baseline:
+            current = self.store.get()
+            if current is None:
+                current = self.capture_once()
+            baseline = current.content_hash
+
+        def _hit(frame: EncodedFrame) -> dict[str, Any] | None:
+            if frame.content_hash == baseline:
+                return None
+            if min_score > 0.0 and frame.change_score < min_score:
+                return None
+            return {
+                "ok": True,
+                "changed": True,
+                "timed_out": False,
+                "since_hash": baseline,
+                "content_hash": frame.content_hash,
+                "change_score": frame.change_score,
+                "width": frame.width,
+                "height": frame.height,
+                "timestamp_ms": frame.timestamp_ms,
+                "watch_running": self.daemon.running,
+                "waited_ms": round((timeout - (deadline - time.time())) * 1000.0, 1),
+            }
+
+        deadline = time.time() + timeout
+        last: EncodedFrame | None = self.store.get()
+        while time.time() < deadline:
+            store_frame = self.store.get()
+            if store_frame is not None:
+                last = store_frame
+                hit = _hit(store_frame)
+                if hit is not None:
+                    return hit
+            if not self.daemon.running:
+                try:
+                    frame = self.capture_once()
+                    last = frame
+                    hit = _hit(frame)
+                    if hit is not None:
+                        return hit
+                except Exception:
+                    logger.debug("wait_for_change grab failed; retrying", exc_info=True)
+            time.sleep(poll)
+
+        return {
+            "ok": True,
+            "changed": False,
+            "timed_out": True,
+            "since_hash": baseline,
+            "content_hash": last.content_hash if last else None,
+            "change_score": last.change_score if last else None,
+            "watch_running": self.daemon.running,
+            "timeout_s": timeout,
+        }
+
     def status(self) -> dict[str, Any]:
         frame = self.store.get()
         return {

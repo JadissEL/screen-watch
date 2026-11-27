@@ -9,6 +9,7 @@ TOOL_NAMES: tuple[str, ...] = (
     "get_frame_history",
     "get_display_frame",
     "save_latest_frame",
+    "wait_for_change",
     "start_watch",
     "stop_watch",
     "set_capture_display",

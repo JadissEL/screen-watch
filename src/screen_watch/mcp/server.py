@@ -96,7 +96,7 @@ def build_server() -> Any:
             return (
                 "1. doctor / get_version\n"
                 "2. start_watch\n"
-                "3. poll get_latest_frame_info(since_hash=…)\n"
+                "3. wait_for_change(since_hash=…) or poll get_latest_frame_info\n"
                 "4. get_latest_frame only when hash changes\n"
             )
 
@@ -232,6 +232,25 @@ def build_server() -> Any:
         svc = get_service()
         target = None if display_id <= 0 else display_id
         return svc.bench(iterations=iterations, display_id=target)
+
+    @mcp.tool()
+    def wait_for_change(
+        since_hash: str = "",
+        min_change_score: float = 0.0,
+        timeout_s: float = 30.0,
+        poll_s: float = 0.25,
+    ) -> dict[str, Any]:
+        """
+        Block until the desktop changes vs ``since_hash`` (or the current frame).
+
+        Prefer ``start_watch`` first. Caps at 120s. Returns metadata only (no image).
+        """
+        return get_service().wait_for_change(
+            since_hash=since_hash,
+            min_change_score=min_change_score,
+            timeout_s=timeout_s,
+            poll_s=poll_s,
+        )
 
     @mcp.tool()
     def save_latest_frame(

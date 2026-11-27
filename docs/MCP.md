@@ -26,6 +26,7 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 | `get_frame_history` | Ring-buffer metadata (no images); `changed_only`, `min_change_score` |
 | `get_display_frame` | Specific monitor id |
 | `save_latest_frame` | Write JPEG to disk path |
+| `wait_for_change` | Block until hash/score changes (`timeout_s` ≤ 120); metadata only |
 | `bench_capture` | Local latency ms |
 | `start_watch` / `stop_watch` / `get_watch_status` | Daemon (`start_watch(display_id=…)`) |
 | `set_capture_display` | Default monitor for watch / latest frame |
@@ -41,6 +42,6 @@ Compatibility promise: [STABLE_API.md](STABLE_API.md) (from **v0.2.0**).
 
 ## Token tips
 
-1. `start_watch` then poll `get_latest_frame_info` / `get_latest_frame(since_hash=…)`.
+1. `start_watch` then `wait_for_change(since_hash=…)` or poll `get_latest_frame_info`.
 2. Prefer crops (`get_region_frame` / guided focus) over full desktop.
 3. Use `save_latest_frame` when the host cannot ingest image content.

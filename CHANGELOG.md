@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.7 — 2026-11-27
+
+- MCP/service ``wait_for_change`` — block until hash/score changes (cap 120s, metadata only)
+
 ## 0.2.6 — 2026-11-27
 
 - Recording taps the watch ``FrameStore`` when the daemon is already running (no second grab loop)
