@@ -9,6 +9,7 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 | `screen://privacy` | Privacy blurb (text) |
 | `screen://status` | Watch/capture status JSON |
 | `screen://tools` | Tool name catalog JSON |
+| `screen://recordings` | Local session index JSON (no images) |
 
 ## Prompts
 

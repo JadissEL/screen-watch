@@ -7,7 +7,7 @@ Starting with **v0.2.0**, the MCP tool names in `screen_watch.mcp.tools_catalog.
 - Tool **names** will not be removed or renamed without a major version bump.
 - Existing parameters keep their meaning; new optional parameters may be added.
 - New tools may be added in minor releases (additive); removals require a major bump.
-- Resources `screen://privacy`, `screen://status`, `screen://tools` stay available when the MCP SDK supports resources.
+- Resources `screen://privacy`, `screen://status`, `screen://tools`, `screen://recordings` stay available when the MCP SDK supports resources.
 - Observation-only: no control-injection tools will be added under these names.
 
 ## Non-guarantees

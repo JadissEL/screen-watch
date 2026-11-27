@@ -80,6 +80,17 @@ def build_server() -> Any:
             """Canonical tool name catalog."""
             return json.dumps({"tools": list(TOOL_NAMES), "count": len(TOOL_NAMES)}, indent=2)
 
+        @mcp.resource("screen://recordings")
+        def recordings_resource() -> str:
+            """JSON index of local recording sessions (no image bytes)."""
+            return json.dumps(
+                {
+                    "sessions": _get_recorder().list_sessions(),
+                    "recording_enabled": get_service().settings.recording_enabled,
+                },
+                indent=2,
+            )
+
     except Exception:
         logger.debug("MCP resources not registered on this SDK", exc_info=True)
 

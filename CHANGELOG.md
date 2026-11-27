@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.13 — 2026-11-27
+
+- MCP resource ``screen://recordings``
+- Doctor reports continuous-capture seam (FramePump)
+
 ## 0.2.12 — 2026-11-27
 
 - MCP ``get_recording_meta``; richer ``list_recordings`` (ended_ms, capture_source, active)

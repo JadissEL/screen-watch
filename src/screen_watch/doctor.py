@@ -46,6 +46,12 @@ def run_doctor() -> dict[str, Any]:
         },
         "repo": "https://github.com/JadissEL/screen-watch",
         "backend": backend_info,
+        "continuous_capture": {
+            "seam": "FramePump",
+            "watch": "WatchDaemon → FramePump → FrameStore",
+            "recording": "FramePump or shared FrameStore tap",
+            "native_streams": "planned (SCK / PipeWire / DXCam stream)",
+        },
         "tools": {
             "grim": bool(shutil.which("grim")),
             "gdbus": bool(shutil.which("gdbus")),
