@@ -10,6 +10,7 @@ TOOL_NAMES: tuple[str, ...] = (
     "get_display_frame",
     "save_latest_frame",
     "wait_for_change",
+    "get_change_region",
     "start_watch",
     "stop_watch",
     "set_capture_display",

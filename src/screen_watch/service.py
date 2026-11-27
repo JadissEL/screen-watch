@@ -14,6 +14,7 @@ from screen_watch.config import Settings, load_settings
 from screen_watch.daemon.watcher import WatchDaemon
 from screen_watch.focus.region import BBox, crop_rgb
 from screen_watch.pipeline.blur import pixelate_rgb
+from screen_watch.pipeline.change_detect import change_bbox
 from screen_watch.pipeline.downsample import downsample_rgb
 from screen_watch.pipeline.encode import encode_jpeg
 from screen_watch.pipeline.frame_store import EncodedFrame, FrameStore
@@ -33,6 +34,7 @@ class ScreenWatchService:
     backend_name: str
 
     _thumb: Any = None
+    _prev_change_jpeg: bytes | None = None
     _grab_lock: threading.Lock = field(default_factory=threading.Lock)
     _gate: MinIntervalGate = field(default_factory=MinIntervalGate)
 
@@ -124,6 +126,67 @@ class ScreenWatchService:
             "ms_max": round(samples_ms[-1], 2),
             "ms_mean": round(sum(samples_ms) / len(samples_ms), 2),
         }
+
+    def get_change_region(
+        self,
+        *,
+        blur: bool | None = None,
+        pixel_threshold: int = 12,
+        include_crop: bool = True,
+    ) -> dict[str, Any]:
+        """
+        Compare the previous observed JPEG to the latest frame; return a change bbox.
+
+        Call after ``wait_for_change`` / a poll cycle. First call seeds baseline only.
+        Coordinates are in the downsampled frame space (same as returned JPEG).
+        """
+        from io import BytesIO
+
+        from PIL import Image
+
+        # Prefer an existing store frame (watch / tests); otherwise one-shot.
+        current = self.store.get()
+        if current is None or not current.jpeg:
+            current = self.latest_for_agent(blur=blur)
+        elif blur is not None and current.blur != blur:
+            current = self.capture_once(blur=blur)
+        if not current.jpeg:
+            current = self.capture_once(blur=blur)
+        prev = self._prev_change_jpeg
+        self._prev_change_jpeg = current.jpeg
+        base = {
+            "ok": True,
+            "content_hash": current.content_hash,
+            "width": current.width,
+            "height": current.height,
+            "change_score": current.change_score,
+            "backend": current.backend,
+        }
+        if not prev:
+            return {**base, "bbox": None, "seeded": True, "note": "Baseline stored; call again after a change"}
+        try:
+            img_a = Image.open(BytesIO(prev)).convert("RGB")
+            img_b = Image.open(BytesIO(current.jpeg)).convert("RGB")
+        except Exception as exc:
+            return {**base, "ok": False, "error": f"JPEG decode failed: {exc}", "bbox": None}
+        bbox = change_bbox(
+            img_a,
+            img_b,
+            frame_width=current.width,
+            frame_height=current.height,
+            pixel_threshold=max(1, int(pixel_threshold)),
+        )
+        out: dict[str, Any] = {**base, "bbox": bbox, "seeded": False}
+        if bbox and include_crop:
+            crop = img_b.crop(
+                (bbox["x"], bbox["y"], bbox["x"] + bbox["width"], bbox["y"] + bbox["height"])
+            )
+            buf = BytesIO()
+            crop.save(buf, format="JPEG", quality=self.settings.jpeg_quality)
+            out["region_jpeg"] = buf.getvalue()
+            out["region_width"] = crop.width
+            out["region_height"] = crop.height
+        return out
 
     def latest_for_agent(self, *, blur: bool | None = None) -> EncodedFrame:
         """

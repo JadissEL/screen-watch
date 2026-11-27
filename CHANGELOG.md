@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.10 — 2026-11-27
+
+- MCP ``get_change_region`` — bbox (+ optional crop) of pixels changed since last call
+
 ## 0.2.9 — 2026-11-27
 
 - CLI ``screen-watch wait`` and ``screen-watch export``

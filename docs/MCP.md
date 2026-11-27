@@ -27,6 +27,7 @@ Transport: **stdio** (`python -m screen_watch serve`). Observation only.
 | `get_display_frame` | Specific monitor id |
 | `save_latest_frame` | Write JPEG to disk path |
 | `wait_for_change` | Block until hash/score changes (`timeout_s` ≤ 120); metadata only |
+| `get_change_region` | BBox (+ optional crop) of pixels changed since last call |
 | `bench_capture` | Local latency ms |
 | `start_watch` / `stop_watch` / `get_watch_status` | Daemon (`start_watch(display_id=…)`) |
 | `set_capture_display` | Default monitor for watch / latest frame |

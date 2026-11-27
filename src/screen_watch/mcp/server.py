@@ -253,6 +253,27 @@ def build_server() -> Any:
         )
 
     @mcp.tool()
+    def get_change_region(
+        blur: bool = False,
+        pixel_threshold: int = 12,
+        include_crop: bool = True,
+    ) -> Any:
+        """
+        Bounding box (+ optional crop JPEG) of pixels that changed since the last call.
+
+        First call seeds a baseline (bbox null). Pair with ``wait_for_change``.
+        """
+        result = get_service().get_change_region(
+            blur=True if blur else None,
+            pixel_threshold=pixel_threshold,
+            include_crop=include_crop,
+        )
+        jpeg = result.pop("region_jpeg", None)
+        if jpeg and include_crop:
+            return _image_result(jpeg, result)
+        return result
+
+    @mcp.tool()
     def save_latest_frame(
         path: str = "",
         blur: bool = False,
